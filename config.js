@@ -7,8 +7,9 @@ window.CAIXA_CONFIG = {
   supabaseAnonKey: "sb_publishable_8oXjesRNulu7ro5MM80ChA_L-Jzhorn",
 
   // Cartões de crédito. O "id" fica gravado nos lançamentos: escolha uma vez e não mude.
+  // "vencimento" (dia do mês) faz a fatura aparecer em "Contas do mês" com lembrete.
   cartoes: [
-    { id: "santander", nome: "Cartão Santander" },
+    { id: "santander", nome: "Cartão Santander", vencimento: 6 },
     { id: "nubank", nome: "Cartão Nubank" },
     { id: "emprestado", nome: "Cartão emprestado" }
   ],
