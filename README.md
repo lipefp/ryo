@@ -15,7 +15,7 @@ Livro-caixa pessoal pro celular. Responde três perguntas: quanto sobrou na cont
 - **Metas:** alvo, prazo e quanto guardar por mês pra chegar lá.
 - **Extrato e categorias** de cada mês.
 - **Importar extrato:** lê o PDF do extrato da conta (testado com o do Santander), OFX ou CSV, sugere a categoria de cada linha e deixa de fora o que já foi lançado. Nada é salvo antes de você conferir.
-- **Contas fixas:** cadastre o que se repete todo mês e lance tudo com um toque.
+- **Contas do mês:** tudo que vence no mês em ordem de data, com situação (pago, vence em breve, atrasada), botão Pagar e aviso no topo quando algo vence em até 3 dias. Faturas entram com o dia de vencimento definido no `config.js`.
 - **Teto semanal:** mostra quanto do dia a dia já foi gasto na semana. Contas fixas e parcelas não entram nessa conta.
 - **Editar lançamento:** toque na descrição no extrato.
 - **Backup** em JSON a qualquer momento.
@@ -27,6 +27,7 @@ Cada valor tem cor e sinal próprios: `+` entrada, `−` gasto, `→` guardado, 
 - Front: HTML, CSS e JavaScript, sem framework e sem etapa de build. Um único `index.html`.
 - Banco: PostgreSQL no [Supabase](https://supabase.com), com login por e-mail e senha.
 - Hospedagem: GitHub Pages (ou qualquer hospedagem de arquivos estáticos).
+- App Android: o mesmo `index.html` empacotado com [Capacitor](https://capacitorjs.com). O APK é gerado pelo GitHub Actions.
 
 ## Segurança
 
@@ -62,7 +63,15 @@ O `id` de cada cartão fica gravado nos lançamentos. Escolha uma vez e não mud
 2. Em **Settings → Pages**, escolha **Deploy from a branch**, branch `main`, pasta `/ (root)`.
 3. Em **Authentication → URL Configuration** no Supabase, coloque o endereço do Pages (`https://SEU-USUARIO.github.io/caixa/`) em **Site URL**.
 
-### 6. Atalho no celular
+### 6. App Android (opcional)
+
+A cada mudança no `index.html` ou no `config.js`, o workflow `.github/workflows/apk.yml` gera o APK e publica em **Releases → App Android** (`caixa.apk`). O app abre sem navegador e fala direto com o Supabase.
+
+Pra que cada APK novo instale por cima do anterior, salve uma chave de assinatura fixa em **Settings → Secrets and variables → Actions** com o nome `ANDROID_DEBUG_KEYSTORE` (o arquivo `.keystore` em base64). Sem ela, o Android pede pra desinstalar a versão antiga antes. Os dados ficam no Supabase, então nada se perde.
+
+Pra gerar localmente: `npm install`, `npm run app:preparar`, `npx cap add android` e abra a pasta `android/` no Android Studio.
+
+### 7. Atalho no celular
 
 Abra o endereço no Chrome, toque em **⋮ → Adicionar à tela inicial**. O app abre em tela cheia, com ícone próprio.
 
@@ -82,6 +91,11 @@ index.html             app inteiro (HTML, CSS e JS)
 config.js              URL do Supabase, chave anon, cartões, categorias e atalhos
 supabase/schema.sql    tabelas, índices, Row Level Security e tempo real
 supabase/002-*.sql     contas fixas, teto semanal e campos de importação
+supabase/003-*.sql     lançamento automático a partir das notificações do banco
+supabase/004-*.sql     contas com vencimento em dia útil
+capacitor.config.json  configuração do app Android
+scripts/               monta a pasta www/ do app
+android-res/           ícone e tela de abertura do app
 manifest.webmanifest   instalação na tela inicial
 icon.svg               ícone
 ```
@@ -91,10 +105,6 @@ icon.svg               ícone
 - [ ] Importar a fatura do cartão em PDF
 - [ ] API própria em Django REST como alternativa ao Supabase
 - [ ] Gráfico de evolução da sobra mês a mês
-
-## Créditos
-
-Construído com auxílio do Claude (Anthropic).
 
 ## Licença
 
