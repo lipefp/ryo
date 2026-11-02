@@ -1,0 +1,15 @@
+# Nunca suba dados pessoais nem chaves privadas
+*.backup.json
+caixa-backup-*.json
+migracao*.sql
+.env
+.env.*
+.DS_Store
+
+# app Android (gerado no GitHub Actions)
+node_modules/
+www/
+android/
+package-lock.json
+*.keystore
+*.jks
