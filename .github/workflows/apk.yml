@@ -3,7 +3,7 @@ name: App Android
 on:
   push:
     branches: [main]
-    paths: ["index.html", "config.js", "icon.svg", "package.json", "capacitor.config.json", "scripts/**", "android-res/**", ".github/workflows/apk.yml"]
+    paths: ["app/**", "mobile/**", ".github/workflows/apk.yml"]
   workflow_dispatch:
 
 permissions:
@@ -25,13 +25,15 @@ jobs:
           java-version: 21
 
       - name: Instalar dependências
+        working-directory: mobile
         run: npm install --no-audit --no-fund
 
       - name: Montar o projeto Android
+        working-directory: mobile
         run: |
           npm run app:preparar
           npx cap add android
-          cp -r android-res/. android/app/src/main/res/
+          cp -r res/. android/app/src/main/res/
           npx cap sync android
 
       - name: Chave de assinatura
@@ -47,13 +49,13 @@ jobs:
           fi
 
       - name: Gerar APK
-        working-directory: android
+        working-directory: mobile/android
         run: ./gradlew assembleDebug --no-daemon
 
       - name: Publicar APK
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          cp android/app/build/outputs/apk/debug/app-debug.apk caixa.apk
-          gh release view apk >/dev/null 2>&1 || gh release create apk --title "App Android" --notes "APK gerado automaticamente a cada atualização do app. Baixe o caixa.apk e instale no celular."
-          gh release upload apk caixa.apk --clobber
+          cp mobile/android/app/build/outputs/apk/debug/app-debug.apk ryo.apk
+          gh release view apk >/dev/null 2>&1 || gh release create apk --title "App Android" --notes "APK gerado automaticamente a cada atualização do app. Baixe o ryo.apk e instale no celular."
+          gh release upload apk ryo.apk --clobber

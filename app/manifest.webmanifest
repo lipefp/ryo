@@ -16,7 +16,7 @@
       "purpose": "any"
     },
     {
-      "src": "brand/ryo-app-icon-adaptive-foreground.svg",
+      "src": "icon-maskable.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "maskable"

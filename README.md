@@ -58,7 +58,7 @@ Ryo (両) foi a moeda de ouro do Japão no período Edo. O ideograma também que
 
 ## Segurança
 
-Todas as tabelas usam Row Level Security: cada usuário só lê e grava as próprias linhas. A chave no `config.js` é a publishable, que é pública por definição e não acessa nada sem login. Chave secret ou service_role nunca entra no repositório.
+Todas as tabelas usam Row Level Security: cada usuário só lê e grava as próprias linhas. A chave no `app/config.js` é a publishable, que é pública por definição e não acessa nada sem login. Chave secret ou service_role nunca entra no repositório.
 
 Pra uso pessoal, desative novos cadastros no Supabase em Authentication > Sign In / Providers > Allow new users to sign up.
 
@@ -66,29 +66,28 @@ Pra uso pessoal, desative novos cadastros no Supabase em Authentication > Sign I
 
 1. Crie um projeto no [Supabase](https://supabase.com) e rode no SQL Editor os arquivos da pasta `supabase/`, nesta ordem: `schema.sql`, `002`, `003`, `004` e `005`.
 2. Crie seu usuário em Authentication > Users > Add user.
-3. Coloque a Project URL e a chave publishable no `config.js`. No mesmo arquivo ficam os cartões, as categorias e os atalhos.
-4. Publique no GitHub Pages (Settings > Pages > branch `main`) ou rode local:
+3. Coloque a Project URL e a chave publishable no `app/config.js`. No mesmo arquivo ficam os cartões, as categorias e os atalhos.
+4. Publique no GitHub Pages (Settings > Pages > Source: GitHub Actions; o workflow `pages.yml` publica a pasta `app/`) ou rode local:
 
 ```bash
-python3 -m http.server 8000
+cd app && python3 -m http.server 8000
 ```
 
 ### App Android
 
 O workflow `.github/workflows/apk.yml` gera o APK a cada mudança e publica em Releases. Pra cada versão nova instalar por cima da anterior, salve a chave de assinatura no secret `ANDROID_DEBUG_KEYSTORE` (keystore em base64).
 
-Pra gerar na sua máquina: `npm install`, `npm run app:preparar`, `npx cap add android` e abra a pasta `android/` no Android Studio.
+Pra gerar na sua máquina, dentro da pasta `mobile/`: `npm install`, `npm run app:preparar`, `npx cap add android` e abra a pasta `mobile/android/` no Android Studio.
 
 ## Estrutura
 
 ```
-index.html             o app inteiro (HTML, CSS e JS)
-config.js              Supabase, cartões, categorias e atalhos
-supabase/              tabelas, regras de acesso e funções, em ordem
-brand/                 símbolo, ícones, cores e guia da marca
-android-res/           ícone e tela de abertura do app Android
-scripts/               monta a pasta do app Android
-docs/                  imagens deste README
+app/          o app (index.html, config.js, ícone e manifest), publicado no GitHub Pages
+mobile/       app Android: Capacitor, ícones e o script que monta o APK
+supabase/     tabelas, regras de acesso e funções, em ordem de execução
+brand/        símbolo, ícones, cores e guia da marca
+docs/         imagens deste README
+.github/      workflows do site e do APK
 ```
 
 ## Próximos passos

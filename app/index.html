@@ -258,7 +258,7 @@ h1, h2, .titulo { font-weight: 800; letter-spacing: -0.03em; }
 .alerta { color: var(--warn); }
 .seg button[aria-pressed="true"] { color: var(--ink); border-bottom-color: var(--shu); }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script>
 <script src="config.js"></script>
 </head>
 <body>
@@ -1294,6 +1294,7 @@ h1, h2, .titulo { font-weight: 800; letter-spacing: -0.03em; }
     await new Promise((res, rej) => {
       const s = document.createElement("script");
       s.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+      s.integrity = "sha384-/1qUCSGwTur9vjf/z9lmu/eCUYbpOTgSjmpbMQZ1/CtX2v/WcAIKqRv+U1DUCG6e"; s.crossOrigin = "anonymous";
       s.onload = res; s.onerror = () => rej(new Error("pdfjs"));
       document.head.appendChild(s);
     });
