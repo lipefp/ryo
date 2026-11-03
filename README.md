@@ -1,3 +1,5 @@
+<img src="brand/ryo-symbol-light.svg" alt="" width="56">
+
 # Ryo
 
 **Personal Finance.** Controle financeiro pessoal que eu fiz pra usar no celular. Mostra quanto sobrou na conta no mês, pra onde foi o dinheiro e quanto falta pras metas.
