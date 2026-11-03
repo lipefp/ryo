@@ -3,52 +3,40 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#EEF2EA" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0F1512" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F6F3EE" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#111014" media="(prefers-color-scheme: dark)">
 <meta name="description" content="Ryo, Personal Finance: quanto entrou, pra onde foi, quanto sobrou.">
 <title>Ryo</title>
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 /* Livro-caixa: pauta verde, margem vermelha nos números principais, linha de soma nos totais. Uma coluna, mobile-first. */
 :root {
-  --bg: #EEF2EA;
-  --surface: #F7FAF5;
-  --ink: #1B2620;
-  --muted: #56635C;
-  --line: #CFD9D0;
-  --track: #E2E9E3;
-  --accent: #25603F;
-  --accent-soft: #DCE8DF;
-  --margin: #C2492F;
-  --in: #25603F;
-  --out: #A63D2A;
-  --save: #7A5C0E;
-  --save-soft: #EFE4C6;
-  --fat: #4F5B57;
-  --warn: #8A4F00;
-  --dash: #8A978F;
-  --btn: #1B2620;
-  --btn-ink: #F7FAF5;
-  --shadow: rgba(27, 38, 32, 0.22);
+  /* Ryo: tokens da marca (brand/ryo-tokens.css). shu = marca, ação e sobrou; ink = entrou; cinza = saiu; âmbar = alerta */
+  --bg: #F6F3EE; --surface: #FFFFFF; --ink: #1B1A1F; --muted: #6C6A70; --line: #E2DED6; --track: #ECE8E1;
+  --shu: #E4501F; --on-shu: #1A0A04; --accent: #B3330D; --accent-soft: #FBE6DC;
+  --margin: #E4501F; --in: #1B1A1F; --out: #6C6A70; --save: #B3330D; --save-soft: #FBE6DC; --fat: #6C6A70;
+  --warn: #8F5B00; --amber: #EDB02F; --dash: #B9B4AB; --btn: #1B1A1F; --btn-ink: #F6F3EE; --shadow: rgba(27, 26, 31, 0.18);
   --display: "Archivo", "Segoe UI", system-ui, sans-serif;
   --body: "Public Sans", "Segoe UI", system-ui, sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0F1512; --surface: #18201B; --ink: #E4EBE6; --muted: #9AA8A0; --line: #2A3530; --track: #222C26;
-    --accent: #6CC497; --accent-soft: #23362B; --margin: #EE9580; --in: #6CC497; --out: #EE9580; --save: #D8BC6A; --save-soft: #2E2A1A;
-    --fat: #A9B5B0; --warn: #E3A64A; --dash: #5E6B64; --btn: #E4EBE6; --btn-ink: #0F1512; --shadow: rgba(0, 0, 0, 0.5);
+    --bg: #111014; --surface: #1B1A1F; --ink: #F3F0EA; --muted: #98959C; --line: #2C2A30; --track: #242228;
+    --shu: #F8703F; --on-shu: #1A0A04; --accent: #F8703F; --accent-soft: #3A1E14;
+    --margin: #F8703F; --in: #F3F0EA; --out: #98959C; --save: #F8703F; --save-soft: #3A1E14; --fat: #98959C;
+    --warn: #F2BC4A; --amber: #F2BC4A; --dash: #4A474F; --btn: #F3F0EA; --btn-ink: #111014; --shadow: rgba(0, 0, 0, 0.5);
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0F1512; --surface: #18201B; --ink: #E4EBE6; --muted: #9AA8A0; --line: #2A3530; --track: #222C26;
-  --accent: #6CC497; --accent-soft: #23362B; --margin: #EE9580; --in: #6CC497; --out: #EE9580; --save: #D8BC6A; --save-soft: #2E2A1A;
-  --fat: #A9B5B0; --warn: #E3A64A; --dash: #5E6B64; --btn: #E4EBE6; --btn-ink: #0F1512; --shadow: rgba(0, 0, 0, 0.5);
+  --bg: #111014; --surface: #1B1A1F; --ink: #F3F0EA; --muted: #98959C; --line: #2C2A30; --track: #242228;
+  --shu: #F8703F; --on-shu: #1A0A04; --accent: #F8703F; --accent-soft: #3A1E14;
+  --margin: #F8703F; --in: #F3F0EA; --out: #98959C; --save: #F8703F; --save-soft: #3A1E14; --fat: #98959C;
+  --warn: #F2BC4A; --amber: #F2BC4A; --dash: #4A474F; --btn: #F3F0EA; --btn-ink: #111014; --shadow: rgba(0, 0, 0, 0.5);
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
@@ -254,6 +242,21 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
 .semana-v .num { font-size: 1.05rem; }
 .rodape { justify-content: flex-start; }
 #avisoContas { display: none !important; }
+
+/* identidade Ryo */
+h1, h2, .titulo { font-weight: 800; letter-spacing: -0.03em; }
+.marca { display: inline-flex; align-items: center; gap: 8px; font-size: 18px; font-weight: 800; letter-spacing: -0.03em; }
+.hero .v { letter-spacing: -0.05em; }
+.hero .v .cent { color: var(--muted); }
+#sEntrou { color: var(--in); } #sSaiu { color: var(--out); }
+.fab, .primary, .pagar-btn { background: var(--shu); color: var(--on-shu); }
+.pagar-btn.ghost { background: none; color: var(--accent); }
+.fina i { background: var(--shu); }
+.prog i { background: var(--shu); }
+.pill.urgent { background: var(--amber); color: #1A1300; }
+.pill.ok { color: var(--ink); }
+.alerta { color: var(--warn); }
+.seg button[aria-pressed="true"] { color: var(--ink); border-bottom-color: var(--shu); }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
 <script src="config.js"></script>
@@ -262,7 +265,7 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
 
 <div class="wrap">
   <header class="top">
-    <h1>Ryo</h1>
+    <h1 class="marca"><svg viewBox="0 0 100 100" width="24" height="24" aria-hidden="true"><path d="M12 16 H88 M24 16 V86 M76 16 V86" stroke="currentColor" stroke-width="11" stroke-linecap="round" fill="none"></path><path d="M50 38 V76" stroke="var(--shu)" stroke-width="13" stroke-linecap="round" fill="none"></path></svg>Ryo</h1>
     <div class="monthnav" id="monthnav">
       <button id="prev" aria-label="Mês anterior">&#8249;</button>
       <span id="monthLabel">—</span>
@@ -640,8 +643,9 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
     $("sFatura").textContent = fmt(abertos.reduce((x, a) => x + a[1], 0));
     $("sFaturaSub").textContent = abertos.filter((a) => a[1] > 0).map((a) => CARDS[a[0]] + " " + fmt(a[1])).join(" · ");
     const sobra = ent - gasConta - gua - fat;
-    $("sSobra").textContent = fmt(sobra);
-    $("sSobra").style.color = sobra < 0 ? "var(--out)" : "var(--ink)";
+    { const t = fmt(sobra), i = t.lastIndexOf(","), el = $("sSobra"), c = document.createElement("span");
+      c.className = "cent"; c.textContent = t.slice(i); el.replaceChildren(t.slice(0, i), c); }
+    $("sSobra").style.color = sobra < 0 ? "var(--warn)" : "var(--ink)";
     { const now = ymOf(new Date()); const mn = lanc.filter((l) => (l.data || "").slice(0, 7) === now); const sm = (t, f) => mn.filter((l) => l.tipo === t && (!f || f(l))).reduce((x, l) => x + l.valor, 0); $("sSobraMini").textContent = fmt(sm("entrada") - sm("gasto", isConta) - sm("guardado") - sm("fatura")); }
     $("extratoCount").textContent = mes.length ? mes.length + (mes.length === 1 ? " lançamento" : " lançamentos") : "nenhum lançamento";
     renderCats(mes, gas);
