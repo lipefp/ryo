@@ -1,11 +1,15 @@
-# Caixa
+# Ryo
 
-Controle financeiro pessoal que eu fiz pra usar no celular. Mostra quanto sobrou na conta no mês, pra onde foi o dinheiro e quanto falta pras metas.
+**Personal Finance.** Controle financeiro pessoal que eu fiz pra usar no celular. Mostra quanto sobrou na conta no mês, pra onde foi o dinheiro e quanto falta pras metas.
 
 <p>
   <img src="docs/tela-principal.png" alt="Tela principal" width="300">
   <img src="docs/tela-extrato.png" alt="Extrato do mês" width="300">
 </p>
+
+## O nome
+
+Ryo (両) foi a moeda de ouro do Japão no período Edo. O ideograma também quer dizer "os dois lados": o app mostra o que entra e o que sai, e o que sobra no meio.
 
 ## Funcionalidades
 
