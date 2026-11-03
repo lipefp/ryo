@@ -202,6 +202,58 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
 .acoes { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
 .nova-meta { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; align-items: end; border-top: 1px solid var(--line); padding-top: 12px; }
 .nova-meta .full { grid-column: 1 / -1; }
+
+/* visual minimalista: sem cartões, só espaço e linhas finas */
+.wrap { gap: 24px; }
+.view { gap: 24px; }
+.monthnav button { border: 0; color: var(--muted); }
+.panel { background: none; border: 0; padding: 0; }
+.login.panel { background: var(--surface); border-radius: 16px; padding: 20px; }
+.titulo { font-size: 1.6rem; font-weight: 700; }
+.hero { display: grid; gap: 6px; padding: 20px 2px 8px; }
+.hero .v { font-size: 3rem; font-weight: 500; line-height: 1.05; letter-spacing: -0.02em; }
+.hero b { font-weight: 600; color: var(--ink); }
+#sEntrou { color: var(--in); } #sSaiu { color: var(--out); }
+.prox { display: flex; align-items: center; gap: 12px; width: 100%; background: none; border: 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 14px 2px; text-align: left; }
+.prox-d { display: grid; gap: 2px; flex: 1; min-width: 0; }
+.prox-d b { font-size: 1.05rem; font-weight: 600; }
+.prox .num { font-size: 1.05rem; }
+.alerta { color: var(--warn); font-weight: 500; }
+.semana { display: grid; gap: 10px; }
+.semana-v { justify-content: space-between; }
+.semana-v b { font-weight: 500; }
+.fina { height: 4px; border-radius: 99px; background: var(--track); overflow: hidden; }
+.fina i { display: block; height: 100%; background: var(--accent); border-radius: 99px; }
+.semana .acoes { justify-content: space-between; }
+.menu { display: grid; border-top: 1px solid var(--line); }
+.menu button { display: flex; align-items: center; gap: 10px; min-height: 56px; padding: 0 2px; background: none; border: 0; border-bottom: 1px solid var(--line); text-align: left; font-weight: 500; }
+.menu button span:first-child { flex: 1; }
+.menu button::after { content: "\203A"; font-size: 1.3rem; color: var(--muted); }
+.rodape { justify-content: center; gap: 24px; padding-top: 8px; }
+.rodape .linkbtn { color: var(--muted); }
+.aviso { background: none; border: 0; padding: 0; color: var(--warn); }
+.sec { display: grid; gap: 12px; padding-top: 8px; }
+.seg { display: flex; gap: 24px; border: 0; border-radius: 0; background: none; }
+.seg button { padding: 0; flex: 0 0 auto; border-bottom: 2px solid transparent; border-radius: 0; }
+.seg button + button { border-left: 0; }
+.seg button[aria-pressed="true"] { background: none; color: var(--ink); border-bottom-color: var(--ink); }
+.valor-box { background: none; border: 0; padding: 12px 0 4px; }
+.valor-box input { font-size: 3rem; }
+.valor-box .label { text-transform: none; letter-spacing: 0; font-weight: 400; font-size: 0.9rem; }
+.mais { border-top: 1px solid var(--line); padding-top: 4px; }
+.mais summary { min-height: 44px; display: flex; align-items: center; color: var(--accent); font-weight: 600; cursor: pointer; list-style: none; }
+.mais summary::-webkit-details-marker { display: none; }
+.mais summary::after { content: "+"; margin-left: 8px; }
+.mais[open] summary::after { content: "−"; }
+.mais .fields { padding-bottom: 8px; }
+.salvar-bar { border-top: 0; }
+.primary { background: var(--accent); color: var(--surface); border-radius: 16px; }
+.pagar-btn { background: var(--accent); color: var(--surface); border-radius: 10px; }
+.meta:first-child { border-top: 1px solid var(--line); padding-top: 14px; }
+.pagar-btn.ghost { background: none; color: var(--accent); padding: 0 8px; }
+.semana-v .num { font-size: 1.05rem; }
+.rodape { justify-content: flex-start; }
+#avisoContas { display: none !important; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
 <script src="config.js"></script>
@@ -231,24 +283,43 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
   </div>
 
   <div class="view" id="view-main" hidden>
-    <div class="aviso ledger" id="avisoContas" hidden role="status">
-      <span id="avisoTexto"></span>
-      <button type="button" class="linkbtn" id="avisoVer">Ver contas</button>
-    </div>
-    <section class="sobra ledger" aria-label="Sobra na conta">
-      <span class="label">Sobra na conta</span>
-      <span class="v" id="sSobra">R$ 0,00</span>
-      <span class="sub">entrou − gastos da conta − guardado − faturas pagas</span>
+    <section class="hero" aria-label="Sobra do mês">
+      <span class="muted">Sobrou este mês</span>
+      <span class="v num" id="sSobra">R$ 0,00</span>
+      <span class="muted">Entrou <b class="num" id="sEntrou">R$ 0,00</b> · Saiu <b class="num" id="sSaiu">R$ 0,00</b></span>
+      <div hidden><span id="sGastou"></span><span id="sGuardou"></span><span id="sFatura"></span><span id="sFaturaSub"></span></div>
     </section>
-    <section class="summary" aria-label="Resumo do mês">
-      <div><span class="k">+ Entrou</span><span class="v" id="sEntrou">R$ 0,00</span></div>
-      <div><span class="k">− Gastou</span><span class="v" id="sGastou">R$ 0,00</span></div>
-      <div><span class="k">→ Guardou</span><span class="v" id="sGuardou">R$ 0,00</span></div>
-      <div><span class="k">= Fatura em aberto</span><span class="v" id="sFatura">R$ 0,00</span><span class="sub" id="sFaturaSub"></span></div>
+
+    <button type="button" class="prox" id="proxConta" hidden>
+      <span class="prox-d"><span class="small muted">Próxima conta</span><b id="proxNome"></b><span class="small" id="proxQuando"></span></span>
+      <span class="num" id="proxValor"></span>
+    </button>
+
+    <section class="semana" aria-labelledby="semanaTitle">
+      <div class="semana-v"><span class="small muted" id="semanaTitle">Esta semana</span><span><b class="num" id="semGasto">R$ 0,00</b> <span class="muted" id="semTeto"></span></span></div>
+      <div class="fina" id="semBar" hidden><i></i></div>
+      <div class="acoes small"><span class="muted" id="semInfo"></span><button type="button" class="linkbtn" id="tetoBtn">Definir teto</button></div>
+      <form class="acoes" id="tetoForm" hidden novalidate>
+        <div class="field" style="flex: 1 1 140px"><label for="tetoValor">Teto por semana (R$)</label><input id="tetoValor" inputmode="decimal" placeholder="90,00"></div>
+        <button class="primary small-btn" type="submit">Salvar</button><button type="button" class="linkbtn" id="tetoCancelar">Cancelar</button>
+      </form>
     </section>
-    <section class="panel" aria-labelledby="fixasTitle">
-      <div class="meta-head"><h2 id="fixasTitle">Contas de <span id="fixasMes"></span></h2><span class="acoes"><button type="button" class="linkbtn" id="gerenciarFixas">Gerenciar</button><button type="button" class="linkbtn" id="novaFixaBtn">+ Nova</button></span></div>
-      <div class="small muted" id="fixasTotal"></div>
+
+    <nav class="menu" aria-label="Seções">
+      <button type="button" id="abrirContas"><span>Contas do mês</span><span class="small muted" id="contasCount"></span></button>
+      <button type="button" id="abrirExtrato"><span>Extrato</span><span class="small muted" id="extratoCount"></span></button>
+      <button type="button" id="abrirMetas"><span>Metas</span><span class="small muted" id="metasCount"></span></button>
+      <button type="button" id="abrirImportar"><span>Importar extrato</span><span class="small muted">PDF, OFX, CSV</span></button>
+    </nav>
+
+    <div class="acoes small rodape"><button type="button" class="linkbtn" id="backupBtn">Baixar backup</button><button type="button" class="linkbtn" id="sairBtn">Sair</button></div>
+  </div>
+
+  <div class="view" id="view-contas" hidden>
+    <button type="button" class="back" id="voltarContas">&#8249; Início</button>
+    <div class="meta-head"><h2 id="fixasTitle" class="titulo">Contas de <span id="fixasMes"></span></h2><span class="acoes"><button type="button" class="linkbtn" id="gerenciarFixas">Gerenciar</button><button type="button" class="linkbtn" id="novaFixaBtn">+ Nova</button></span></div>
+    <div class="aviso" id="avisoContas" hidden role="status"><span id="avisoTexto"></span><button type="button" class="linkbtn" id="avisoVer" hidden>Ver</button></div>
+    <div class="small muted" id="fixasTotal"></div>
       <form class="nova-meta" id="novaFixaForm" hidden novalidate>
         <div class="field full"><label for="nfNome">Nome</label><input id="nfNome" placeholder="Ex.: Futebol, reserva, parcela com alguém" autocomplete="off"></div>
         <div class="field"><label for="nfValor">Valor (R$)</label><input id="nfValor" inputmode="decimal" placeholder="0,00"></div>
@@ -262,29 +333,17 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
         <div class="acoes full"><button class="primary small-btn" type="submit">Criar conta</button><button type="button" class="linkbtn" id="nfCancelar">Cancelar</button></div>
       </form>
       <div class="comp" id="fixas"></div>
-      <button type="button" class="primary small-btn" id="lancarFixas" hidden style="justify-self: start">Lançar pendentes</button>
-    </section>
-    <section class="panel" aria-labelledby="semanaTitle">
-      <div class="meta-head"><h2 id="semanaTitle">Esta semana</h2><button type="button" class="linkbtn" id="tetoBtn">Definir teto</button></div>
-      <div class="semana-v"><span class="num" id="semGasto">R$ 0,00</span><span class="muted" id="semTeto"></span></div>
-      <div class="prog" id="semBar" hidden><i></i></div>
-      <div class="small muted" id="semInfo"></div>
-      <form class="acoes" id="tetoForm" hidden novalidate>
-        <div class="field" style="flex: 1 1 140px"><label for="tetoValor">Teto por semana (R$)</label><input id="tetoValor" inputmode="decimal" placeholder="90,00"></div>
-        <button class="primary small-btn" type="submit">Salvar</button><button type="button" class="linkbtn" id="tetoCancelar">Cancelar</button>
-      </form>
-    </section>
-    <div class="dupla">
-      <button type="button" class="extrato-btn" id="abrirExtrato"><span>Extrato e para onde foi</span><span class="small muted" id="extratoCount"></span></button>
-      <button type="button" class="extrato-btn" id="abrirImportar"><span>Importar extrato</span><span class="small muted">PDF, OFX ou CSV</span></button>
-    </div>
-    <section class="panel" aria-labelledby="compTitle">
-      <h2 id="compTitle">Parcelas já comprometidas</h2>
+    <button type="button" class="primary small-btn" id="lancarFixas" hidden style="justify-self: start">Lançar pendentes</button>
+    <section class="sec" aria-labelledby="compTitle">
+      <h2 id="compTitle">Parcelas nos próximos meses</h2>
       <div class="months" id="months"></div>
-      <div class="comp" id="comp"><div class="empty">Nenhum parcelamento lançado. Marque "Compra parcelada" ao lançar um gasto.</div></div>
+      <div class="comp" id="comp"><div class="empty">Nenhum parcelamento lançado.</div></div>
     </section>
-    <section class="panel" aria-labelledby="metasTitle">
-      <div class="meta-head"><h2 id="metasTitle">Metas</h2><button type="button" class="linkbtn" id="novaMetaBtn">+ Nova meta</button></div>
+  </div>
+
+  <div class="view" id="view-metas" hidden>
+    <button type="button" class="back" id="voltarMetas">&#8249; Início</button>
+    <div class="meta-head"><h2 id="metasTitle" class="titulo">Metas</h2><button type="button" class="linkbtn" id="novaMetaBtn">+ Nova meta</button></div>
       <form class="nova-meta" id="novaMetaForm" hidden novalidate>
         <div class="field full"><label for="nmNome">Nome</label><input id="nmNome" placeholder="Ex.: Reserva de emergência" autocomplete="off"></div>
         <div class="field"><label for="nmAlvo">Alvo (R$)</label><input id="nmAlvo" inputmode="decimal" placeholder="0,00"></div>
@@ -292,15 +351,12 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
         <div class="field"><label for="nmIni">Já tinha (R$)</label><input id="nmIni" inputmode="decimal" placeholder="0,00"></div>
         <div class="acoes full"><button class="primary small-btn" type="submit">Criar meta</button><button type="button" class="linkbtn" id="nmCancelar">Cancelar</button></div>
       </form>
-      <div class="metas" id="metas"><div class="empty">As metas aparecem aqui assim que o banco responder.</div></div>
-    </section>
-    <p class="foot">Compras no cartão entram em "Gastou" na data da compra, mas só saem da conta quando você lança "Pagar fatura". Guardar numa meta também sai da conta.</p>
-    <div class="acoes small"><button type="button" class="linkbtn" id="backupBtn">Baixar backup (JSON)</button><button type="button" class="linkbtn" id="sairBtn">Sair</button></div>
+    <div class="metas" id="metas"><div class="empty">Carregando…</div></div>
   </div>
 
   <div class="view" id="view-lancar" hidden>
     <div class="lancar-top">
-      <button type="button" class="back" id="voltarLancar">&#8249; Resumo</button>
+      <button type="button" class="back" id="voltarLancar">&#8249; Início</button>
       <span class="small muted">Sobra agora <b class="num" id="sSobraMini" style="color: var(--ink); font-weight: 500">R$ 0,00</b></span>
     </div>
     <div class="lancar-top"><h2 id="addTitle" style="font-size: 1.6rem; font-weight: 700">Lançar</h2><button type="button" class="linkbtn" id="cancelEdit" hidden>Cancelar edição</button></div>
@@ -311,18 +367,22 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
       <button type="button" data-tipo="fatura" aria-pressed="false">Fatura</button>
     </div>
     <form id="form" class="fields" novalidate>
-      <div class="valor-box ledger full"><label for="valor" id="valorLabel" class="label">Valor (R$)</label><input id="valor" class="money" inputmode="decimal" placeholder="0,00" autocomplete="off"></div>
+      <div class="valor-box full"><label for="valor" id="valorLabel" class="label">Valor (R$)</label><input id="valor" class="money" inputmode="decimal" placeholder="0,00" autocomplete="off"></div>
       <div class="chips full" id="chips"></div>
       <div class="field full"><label for="descricao">Descrição</label><input id="descricao" placeholder="Ex.: mercado, uber, almoço" autocomplete="off"></div>
       <div class="field" id="catField"><label for="categoria">Categoria</label><select id="categoria"></select></div>
+      <details class="mais full" id="maisOpcoes"><summary>Data, cartão e parcelas</summary>
+      <div class="fields">
       <div class="field" id="formaField"><label for="forma">Pago com</label><select id="forma"><option value="conta">Conta (Pix/débito)</option></select></div>
       <div class="field"><label for="data">Data</label><input id="data" type="date"></div>
       <div class="field" id="parcField"><label class="check" for="parcelado"><input type="checkbox" id="parcelado"> Parcelada</label></div>
       <div class="field" id="parcAtualField" hidden><label for="parcAtual">Parcela atual</label><input id="parcAtual" type="number" min="1" value="1" inputmode="numeric"></div>
       <div class="field" id="parcTotalField" hidden><label for="parcTotal">Total de parcelas</label><input id="parcTotal" type="number" min="2" value="10" inputmode="numeric"></div>
+      </div>
+      </details>
       <div class="field full" id="cartaoField" hidden><label for="cartaoFat">Qual cartão</label><select id="cartaoFat"></select></div>
       <div class="field full" id="metaField" hidden><label for="metaSel">Guardar na meta</label><select id="metaSel"></select></div>
-      <p class="hint full" id="formHint">No cartão: entra em "Gastou" na data da compra e só sai da conta quando a fatura for paga.</p>
+      <p class="hint full" id="formHint" hidden>No cartão: entra em "Gastou" na data da compra e só sai da conta quando a fatura for paga.</p>
       <div class="salvar-bar full">
         <button class="primary" id="salvar" type="submit">Salvar gasto</button>
         <div class="formmsg" id="formMsg" aria-live="polite"></div>
@@ -331,7 +391,7 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
   </div>
 
   <div class="view" id="view-importar" hidden>
-    <button type="button" class="back" id="voltarImportar">&#8249; Resumo</button>
+    <button type="button" class="back" id="voltarImportar">&#8249; Início</button>
     <h2 style="font-size: 1.6rem; font-weight: 700">Importar extrato</h2>
     <p class="small muted" style="margin: 0">Use o PDF do extrato da conta corrente (no app do Santander: Extrato → escolher o período → compartilhar ou salvar em PDF), um OFX ou um CSV. Nada é salvo antes de você conferir e confirmar.</p>
     <div class="panel fields">
@@ -351,7 +411,7 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
   </div>
 
   <div class="view" id="view-extrato" hidden>
-    <button type="button" class="back" id="voltar">&#8249; Resumo</button>
+    <button type="button" class="back" id="voltar">&#8249; Início</button>
     <section class="panel" aria-labelledby="catTitle">
       <h2 id="catTitle">Para onde foi</h2>
       <div class="cats" id="cats"><div class="empty">Nenhum gasto lançado neste mês.</div></div>
@@ -435,7 +495,7 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
     $("parcField").hidden = t !== "gasto" || !!editId;
     syncParc();
     $("cartaoField").hidden = t !== "fatura";
-    $("formHint").hidden = t !== "gasto";
+    $("formHint").hidden = true;
     $("metaField").hidden = t !== "guardado";
     $("salvar").textContent = editId ? "Salvar alterações" : { gasto: "Salvar gasto", entrada: "Salvar entrada", guardado: "Guardar na meta", fatura: "Registrar pagamento da fatura" }[t];
     $("addTitle").textContent = editId ? "Editar lançamento" : "Lançar";
@@ -573,6 +633,7 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
     const ent = sum("entrada"), gas = sum("gasto"), gua = sum("guardado"), fat = sum("fatura");
     const gasConta = mes.filter((l) => l.tipo === "gasto" && isConta(l)).reduce((s, l) => s + l.valor, 0);
     $("sEntrou").textContent = fmt(ent);
+    $("sSaiu").textContent = fmt(gasConta + gua + fat);
     $("sGastou").textContent = fmt(gas);
     $("sGuardou").textContent = fmt(gua);
     const abertos = Object.keys(CARDS).map((k) => [k, Math.max(abertoCartao(k), 0)]);
@@ -590,6 +651,29 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
     renderSemana();
     renderFixas();
     renderAviso();
+    renderProxima();
+    const ativas = metas.filter((m) => m.status !== "pausada");
+    $("metasCount").textContent = ativas.length ? ativas.length + (ativas.length === 1 ? " meta" : " metas") : "";
+    if (migr002 || (CFG.cartoes || []).some((c) => c.vencimento)) {
+      const its = contasDoMes(viewYM).filter((it) => !it.entrada);
+      $("contasCount").textContent = its.length ? its.filter((it) => it.pago).length + " de " + its.length + " pagas" : "";
+    }
+  }
+
+  // próxima conta a pagar (mês atual)
+  function renderProxima() {
+    const ym = ymOf(new Date());
+    const btn = $("proxConta");
+    if (viewYM !== ym || !(migr002 || (CFG.cartoes || []).some((c) => c.vencimento))) { btn.hidden = true; return; }
+    const it = contasDoMes(ym).filter((x) => !x.pago && !x.entrada).sort((x, y) => x.dia - y.dia)[0];
+    if (!it) { btn.hidden = true; return; }
+    const d = diasAte(ym, it.dia);
+    $("proxNome").textContent = it.nome;
+    const q = $("proxQuando");
+    q.textContent = d < 0 ? "atrasada " + -d + (d === -1 ? " dia" : " dias") : d === 0 ? "vence hoje" : "vence em " + d + (d === 1 ? " dia" : " dias") + " · dia " + it.dia;
+    q.className = "small " + (d <= 3 ? "alerta" : "muted");
+    $("proxValor").textContent = it.valor ? fmt(it.valor) : "";
+    btn.hidden = false;
   }
 
   function renderComp() {
@@ -793,16 +877,21 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
 
   // views
   function showView(v, focusEl) {
-    ["login", "main", "lancar", "extrato", "importar"].forEach((k) => { $("view-" + k).hidden = k !== v; });
+    ["login", "main", "lancar", "extrato", "importar", "contas", "metas"].forEach((k) => { $("view-" + k).hidden = k !== v; });
     $("abrirLancar").hidden = v === "lancar" || v === "login" || v === "importar";
-    $("monthnav").style.visibility = v === "lancar" || v === "login" || v === "importar" ? "hidden" : "visible";
+    $("monthnav").style.visibility = v === "lancar" || v === "login" || v === "importar" || v === "metas" ? "hidden" : "visible";
     window.scrollTo(0, 0);
     if (focusEl) $(focusEl).focus();
   }
   $("abrirExtrato").addEventListener("click", () => showView("extrato", "voltar"));
   $("voltar").addEventListener("click", () => showView("main", "abrirExtrato"));
+  $("abrirContas").addEventListener("click", () => showView("contas", "voltarContas"));
+  $("voltarContas").addEventListener("click", () => showView("main", "abrirContas"));
+  $("proxConta").addEventListener("click", () => showView("contas", "voltarContas"));
+  $("abrirMetas").addEventListener("click", () => showView("metas", "voltarMetas"));
+  $("voltarMetas").addEventListener("click", () => showView("main", "abrirMetas"));
   $("abrirLancar").addEventListener("click", () => showView("lancar", "valor"));
-  $("voltarLancar").addEventListener("click", () => { if (editId) endEdit(); pagarRec = null; $("formMsg").textContent = ""; showView("main", "abrirLancar"); });
+  $("voltarLancar").addEventListener("click", () => { $("maisOpcoes").open = false; if (editId) endEdit(); pagarRec = null; $("formMsg").textContent = ""; showView("main", "abrirLancar"); });
   let startView = (location.hash || "").slice(1);
   if (startView !== "extrato" && startView !== "lancar") startView = "main";
   setTipo("gasto");
@@ -827,7 +916,7 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
     const periodo = pad(ini.getDate()) + "/" + pad(ini.getMonth() + 1) + " a " + pad(fim.getDate()) + "/" + pad(fim.getMonth() + 1);
     let info;
     if (!migr002) info = "Rode o arquivo supabase/002-fixas-teto-importacao.sql no Supabase pra ativar o teto.";
-    else if (!teto) info = "Defina um teto pra acompanhar o dia a dia. Contas fixas e parcelas não entram nessa conta.";
+    else if (!teto) info = "Sem teto definido";
     else if (total <= teto) info = "Restam " + fmt(teto - total) + " até domingo · " + periodo;
     else info = "Passou " + fmt(total - teto) + " do teto · " + periodo;
     $("semInfo").textContent = info;
@@ -926,7 +1015,7 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
       setTipo(r.tipo);
       $("valor").value = r.valor.toFixed(2).replace(".", ",");
       $("descricao").value = r.nome;
-      if (r.tipo === "gasto") { sel.value = r.categoria || "Outros"; $("forma").value = r.forma && CARDS[r.forma] ? r.forma : "conta"; }
+      if (r.tipo === "gasto") { sel.value = r.categoria || "Outros"; $("forma").value = r.forma && CARDS[r.forma] ? r.forma : "conta"; $("maisOpcoes").open = $("forma").value !== "conta"; }
       if (r.tipo === "guardado" && r.metaId) $("metaSel").value = r.metaId;
       pagarRec = r.id;
     } else {
@@ -984,9 +1073,9 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
       const info = document.createElement("span"); info.textContent = (it.util ? it.util + "º dia útil (dia " + it.dia + ")" : "dia " + it.dia) + " · " + it.det;
       const right = document.createElement("span"); right.className = "acoes";
       const pill = document.createElement("span"); pill.className = "pill " + st.cls; pill.textContent = st.txt;
-      right.appendChild(pill);
+      if (!/quiet/.test(st.cls)) right.appendChild(pill);
       if (it.externa) {
-        const pg = document.createElement("button"); pg.type = "button"; pg.className = it.pago ? "linkbtn" : "pagar-btn";
+        const pg = document.createElement("button"); pg.type = "button"; pg.className = it.pago ? "linkbtn" : "pagar-btn ghost";
         pg.textContent = it.pago ? "Desfazer" : "Paguei";
         pg.addEventListener("click", async () => {
           try { await api.updateRec(it.r.id, { ultimo_pago: it.pago ? mesAnterior(viewYM) : viewYM }); }
@@ -994,7 +1083,7 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
         });
         right.appendChild(pg);
       } else if (!it.pago) {
-        const pg = document.createElement("button"); pg.type = "button"; pg.className = "pagar-btn";
+        const pg = document.createElement("button"); pg.type = "button"; pg.className = /late/.test(st.cls) ? "pagar-btn" : "pagar-btn ghost";
         pg.textContent = it.entrada ? "Lançar" : it.kind === "rec" && it.r.tipo === "guardado" ? "Guardar" : "Pagar";
         pg.addEventListener("click", () => abrirPagamento(it));
         right.appendChild(pg);
@@ -1033,10 +1122,7 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
     return ml;
   }
   $("gerenciarFixas").addEventListener("click", () => { gerenciar = !gerenciar; render(); });
-  $("avisoVer").addEventListener("click", () => {
-    viewYM = ymOf(new Date()); render();
-    const el = $("fixasTitle"); if (el.scrollIntoView) el.scrollIntoView({ behavior: "smooth", block: "start" });
-  });
+  $("avisoVer").addEventListener("click", () => { viewYM = ymOf(new Date()); showView("contas", "voltarContas"); render(); });
   $("lancarFixas").addEventListener("click", async () => {
     const pend = recs.filter((r) => r.ativo && !r.externa && !fixaLancada(r, viewYM));
     const rows = [], pulou = [];
@@ -1089,6 +1175,7 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
     setTipo(l.tipo);
     $("valor").value = l.valor.toFixed(2).replace(".", ",");
     $("data").value = l.data;
+    $("maisOpcoes").open = true;
     $("descricao").value = l.descricao || "";
     if (l.tipo === "gasto") {
       if (l.categoria && ![...sel.options].some((o) => o.value === l.categoria)) { const o = document.createElement("option"); o.value = l.categoria; o.textContent = l.categoria; sel.appendChild(o); }
@@ -1349,10 +1436,12 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
   if (nativo) {
     // voltar do Android volta pro resumo
     plugin("App").addListener("backButton", () => {
-      const aberta = ["lancar", "extrato", "importar"].find((k) => !$("view-" + k).hidden);
+      const aberta = ["lancar", "extrato", "importar", "contas", "metas"].find((k) => !$("view-" + k).hidden);
       if (aberta === "lancar") $("voltarLancar").click();
       else if (aberta === "extrato") $("voltar").click();
       else if (aberta === "importar") $("voltarImportar").click();
+      else if (aberta === "contas") $("voltarContas").click();
+      else if (aberta === "metas") $("voltarMetas").click();
       else plugin("App").minimizeApp();
     });
   }
