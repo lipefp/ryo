@@ -665,7 +665,7 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
     const ym = ymOf(new Date());
     const btn = $("proxConta");
     if (viewYM !== ym || !(migr002 || (CFG.cartoes || []).some((c) => c.vencimento))) { btn.hidden = true; return; }
-    const it = contasDoMes(ym).filter((x) => !x.pago && !x.entrada).sort((x, y) => x.dia - y.dia)[0];
+    const it = contasDoMes(ym).filter((x) => !x.pago && !x.entrada).sort((x, y) => x.dia - y.dia || (x.externa ? 1 : 0) - (y.externa ? 1 : 0))[0];
     if (!it) { btn.hidden = true; return; }
     const d = diasAte(ym, it.dia);
     $("proxNome").textContent = it.nome;
