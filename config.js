@@ -9,7 +9,7 @@ window.CAIXA_CONFIG = {
   // Cartões de crédito. O "id" fica gravado nos lançamentos: escolha uma vez e não mude.
   // "vencimento" (dia do mês) faz a fatura aparecer em "Contas do mês" com lembrete.
   cartoes: [
-    { id: "santander", nome: "Cartão Santander", vencimento: 6 },
+    { id: "santander", nome: "Cartão Santander", vencimento: 10 },
     { id: "nubank", nome: "Cartão Nubank" },
     { id: "emprestado", nome: "Cartão emprestado" }
   ],
