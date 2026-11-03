@@ -1,0 +1,17 @@
+:root{
+  --font-display:'Archivo',system-ui,sans-serif; /* 800, tracking -0.04em */
+  --font-text:'Public Sans',system-ui,sans-serif;
+  --font-num:'IBM Plex Mono',ui-monospace,monospace;
+  --shu:#E4501F;        /* oklch(0.63 0.215 37): marca, acao, SOBROU */
+  --shu-deep:#B3330D;   /* texto shu sobre claro */
+  --bg:#F6F3EE; --card:#FFFFFF; --ink:#1B1A1F; /* ink = ENTROU e texto */
+  --mut:#6C6A70;        /* SAIU / secundario */
+  --line:#E2DED6; --amber:#EDB02F; /* alertas */
+  --on-shu:#1A0A04;     /* texto pequeno sobre shu */
+}
+@media (prefers-color-scheme:dark){:root{
+  --shu:#F8703F;        /* oklch(0.70 0.20 37) */
+  --shu-deep:#F8703F;
+  --bg:#111014; --card:#1B1A1F; --ink:#F3F0EA;
+  --mut:#98959C; --line:#2C2A30; --amber:#F2BC4A;
+}}
