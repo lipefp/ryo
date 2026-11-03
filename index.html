@@ -254,7 +254,8 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
         <div class="field"><label for="nfValor">Valor (R$)</label><input id="nfValor" inputmode="decimal" placeholder="0,00"></div>
         <div class="field"><label for="nfDia">Vence no dia</label><input id="nfDia" type="number" min="1" max="28" value="5" inputmode="numeric"></div>
         <div class="field"><label for="nfContagem">Contar como</label><select id="nfContagem"><option value="corrido">Dia do mês</option><option value="util">Dia útil (seg. a sex.)</option></select></div>
-        <div class="field"><label for="nfTipo">Tipo</label><select id="nfTipo"><option value="gasto">Gasto</option><option value="entrada">Entrada</option><option value="guardado">Guardar em meta</option></select></div>
+        <div class="field"><label for="nfOrigem">Sai de onde</label><select id="nfOrigem"><option value="minha">Da minha conta</option><option value="outra">De outra conta (só lembrete)</option></select></div>
+        <div class="field" id="nfTipoField"><label for="nfTipo">Tipo</label><select id="nfTipo"><option value="gasto">Gasto</option><option value="entrada">Entrada</option><option value="guardado">Guardar em meta</option></select></div>
         <div class="field" id="nfCatField"><label for="nfCategoria">Categoria</label><select id="nfCategoria"></select></div>
         <div class="field" id="nfFormaField"><label for="nfForma">Pago com</label><select id="nfForma"><option value="conta">Conta (Pix/débito)</option></select></div>
         <div class="field" id="nfMetaField" hidden><label for="nfMeta">Meta</label><select id="nfMeta"></select></div>
@@ -848,7 +849,12 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
   });
 
   // ---------- contas fixas ----------
-  function fixaLancada(r, ym) { return lanc.some((l) => l.recorrenteId === r.id && (l.data || "").slice(0, 7) === ym); }
+  // Conta "só lembrete" (paga com dinheiro de outra conta): não gera lançamento, só guarda o último mês pago
+  function fixaLancada(r, ym) {
+    if (r.externa) return !!r.ultimoPago && r.ultimoPago >= ym;
+    return lanc.some((l) => l.recorrenteId === r.id && (l.data || "").slice(0, 7) === ym);
+  }
+  function mesAnterior(ym) { const [y, m] = ym.split("-").map(Number); const d = new Date(y, m - 2, 1); return d.getFullYear() + "-" + pad(d.getMonth() + 1); }
   // Feriados nacionais (bancos fechados), incluindo os que dependem da Páscoa
   const feriadosCache = {};
   function feriados(y) {
@@ -891,9 +897,9 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
   function contasDoMes(ym) {
     const itens = [];
     recs.filter((r) => r.ativo).forEach((r) => {
-      const det = r.tipo === "gasto" ? (r.categoria || "Outros") + (r.forma && r.forma !== "conta" ? " · " + (CARDS[r.forma] || "cartão") : "")
+      const det = r.externa ? "só lembrete · sai de outra conta" : r.tipo === "gasto" ? (r.categoria || "Outros") + (r.forma && r.forma !== "conta" ? " · " + (CARDS[r.forma] || "cartão") : "")
         : r.tipo === "entrada" ? "entrada" : "guardar em " + ((metas.find((m) => m.id === r.metaId) || {}).nome || "meta removida");
-      itens.push({ kind: "rec", r, nome: r.nome, dia: diaDe(r, ym), util: r.diaUtil ? r.dia : null, valor: r.valor, sinal: { entrada: "+ ", gasto: "− ", guardado: "→ " }[r.tipo] || "", det, pago: fixaLancada(r, ym), entrada: r.tipo === "entrada" });
+      itens.push({ kind: "rec", r, nome: r.nome, dia: diaDe(r, ym), util: r.diaUtil ? r.dia : null, valor: r.valor, sinal: { entrada: "+ ", gasto: "− ", guardado: "→ " }[r.tipo] || "", det, pago: fixaLancada(r, ym), entrada: r.tipo === "entrada", externa: r.externa });
     });
     (CFG.cartoes || []).filter((c) => c.vencimento).forEach((c) => {
       const ab = Math.max(abertoCartao(c.id), 0);
@@ -966,20 +972,29 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
       d.textContent = 'Cadastre em "+ Nova" o que se repete todo mês: parcelas, mensalidades, o que você manda pra alguém, a reserva. Cada uma ganha data de vencimento e um botão "Pagar".';
       box.appendChild(d);
     }
-    const aPagar = itens.filter((it) => !it.pago && !it.entrada && it.valor).reduce((x, it) => x + it.valor, 0);
+    const aPagar = itens.filter((it) => !it.pago && !it.entrada && !it.externa && it.valor).reduce((x, it) => x + it.valor, 0);
     const pagas = itens.filter((it) => !it.entrada);
     $("fixasTotal").textContent = pagas.length ? pagas.filter((it) => it.pago).length + " de " + pagas.length + " pagas" + (aPagar ? " · falta " + fmt(aPagar) : "") : "";
     itens.forEach((it) => {
       const st = situacao(it, viewYM);
       const row = document.createElement("div"); row.className = "comp-row conta" + (it.pago ? " paga" : "");
       const n = document.createElement("div"); n.textContent = it.nome;
-      const v = document.createElement("div"); v.className = "num"; v.textContent = it.valor ? it.sinal + fmt(it.valor) : "—";
+      const v = document.createElement("div"); v.className = "num"; v.textContent = it.valor ? (it.externa ? "" : it.sinal) + fmt(it.valor) : "—";
+      if (it.externa) v.className = "num muted";
       const ml = document.createElement("div"); ml.className = "meta-line";
       const info = document.createElement("span"); info.textContent = (it.util ? it.util + "º dia útil (dia " + it.dia + ")" : "dia " + it.dia) + " · " + it.det;
       const right = document.createElement("span"); right.className = "acoes";
       const pill = document.createElement("span"); pill.className = "pill " + st.cls; pill.textContent = st.txt;
       right.appendChild(pill);
-      if (!it.pago) {
+      if (it.externa) {
+        const pg = document.createElement("button"); pg.type = "button"; pg.className = it.pago ? "linkbtn" : "pagar-btn";
+        pg.textContent = it.pago ? "Desfazer" : "Paguei";
+        pg.addEventListener("click", async () => {
+          try { await api.updateRec(it.r.id, { ultimo_pago: it.pago ? mesAnterior(viewYM) : viewYM }); }
+          catch (e) { $("status").textContent = "Não deu pra marcar. Rode o arquivo supabase/005-lembretes.sql no Supabase."; }
+        });
+        right.appendChild(pg);
+      } else if (!it.pago) {
         const pg = document.createElement("button"); pg.type = "button"; pg.className = "pagar-btn";
         pg.textContent = it.entrada ? "Lançar" : it.kind === "rec" && it.r.tipo === "guardado" ? "Guardar" : "Pagar";
         pg.addEventListener("click", () => abrirPagamento(it));
@@ -998,7 +1013,7 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
         row.append(n, v, gerenciarLinha(r)); box.appendChild(row);
       });
     }
-    const pend = recs.filter((r) => r.ativo && !fixaLancada(r, viewYM));
+    const pend = recs.filter((r) => r.ativo && !r.externa && !fixaLancada(r, viewYM));
     $("lancarFixas").hidden = !pend.length || !gerenciar;
     $("lancarFixas").textContent = "Lançar todas as " + pend.length + " pendentes com o valor cadastrado";
   }
@@ -1024,7 +1039,7 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
     const el = $("fixasTitle"); if (el.scrollIntoView) el.scrollIntoView({ behavior: "smooth", block: "start" });
   });
   $("lancarFixas").addEventListener("click", async () => {
-    const pend = recs.filter((r) => r.ativo && !fixaLancada(r, viewYM));
+    const pend = recs.filter((r) => r.ativo && !r.externa && !fixaLancada(r, viewYM));
     const rows = [], pulou = [];
     pend.forEach((r) => {
       if (r.tipo === "guardado" && !metas.some((m) => m.id === r.metaId)) { pulou.push(r.nome); return; }
@@ -1039,17 +1054,21 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
     finally { $("lancarFixas").disabled = false; }
   });
   function syncNovaFixa() {
+    const outra = $("nfOrigem").value === "outra";
+    if (outra) $("nfTipo").value = "gasto";
     const t = $("nfTipo").value;
-    $("nfCatField").hidden = t !== "gasto"; $("nfFormaField").hidden = t !== "gasto"; $("nfMetaField").hidden = t !== "guardado";
+    $("nfTipoField").hidden = outra;
+    $("nfCatField").hidden = t !== "gasto" || outra; $("nfFormaField").hidden = t !== "gasto" || outra; $("nfMetaField").hidden = t !== "guardado";
   }
   $("nfTipo").addEventListener("change", syncNovaFixa);
+  $("nfOrigem").addEventListener("change", syncNovaFixa);
   CATS.forEach((c) => { const o = document.createElement("option"); o.value = c; o.textContent = c; $("nfCategoria").appendChild(o); });
   Object.keys(CARDS).forEach((k) => { const o = document.createElement("option"); o.value = k; o.textContent = CARDS[k]; $("nfForma").appendChild(o); });
   $("novaFixaBtn").addEventListener("click", () => { $("novaFixaForm").hidden = false; syncNovaFixa(); $("nfNome").focus(); });
   $("nfCancelar").addEventListener("click", () => { $("novaFixaForm").hidden = true; });
   $("novaFixaForm").addEventListener("submit", async (e) => {
     e.preventDefault();
-    const nome = $("nfNome").value.trim(), valor = parseMoney($("nfValor").value), dia = parseInt($("nfDia").value, 10), t = $("nfTipo").value, util = $("nfContagem").value === "util";
+    const nome = $("nfNome").value.trim(), valor = parseMoney($("nfValor").value), dia = parseInt($("nfDia").value, 10), t = $("nfTipo").value, util = $("nfContagem").value === "util", outra = $("nfOrigem").value === "outra";
     if (!nome || !(valor > 0)) { $("status").textContent = "Dê um nome e um valor maior que zero à conta fixa."; return; }
     if (!(dia >= 1 && dia <= 28)) { $("status").textContent = "O dia vai de 1 a 28."; return; }
     if (util && dia > 20) { $("status").textContent = "Em dia útil, use de 1 a 20."; return; }
@@ -1057,9 +1076,11 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
     try {
       const nova = { nome, valor, dia, tipo: t, categoria: t === "gasto" ? $("nfCategoria").value : null, forma: t === "gasto" ? $("nfForma").value : null, meta_id: t === "guardado" ? $("nfMeta").value : null, ativo: true };
       if (util) nova.dia_util = true;
+      if (outra) { nova.externa = true; nova.categoria = null; nova.forma = null; }
       await api.addRec(nova);
       $("novaFixaForm").reset(); $("nfDia").value = 5; $("novaFixaForm").hidden = true; $("status").textContent = "";
-    } catch (err) { $("status").textContent = util && /dia_util/.test(err && err.message || "") ? "Pra usar dia útil, rode o arquivo supabase/004-dia-util.sql no Supabase." : "Não deu pra criar a conta fixa. Tente de novo."; }
+    } catch (err) { const msg = String(err && err.message || "");
+      $("status").textContent = /externa/.test(msg) ? "Pra criar lembretes, rode o arquivo supabase/005-lembretes.sql no Supabase." : /dia_util/.test(msg) ? "Pra usar dia útil, rode o arquivo supabase/004-dia-util.sql no Supabase." : "Não deu pra criar a conta fixa. Tente de novo."; }
   });
 
   // ---------- editar lançamento ----------
@@ -1370,7 +1391,7 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
     return r;
   }
   function fromRec(r) {
-    return { id: r.id, nome: r.nome, tipo: r.tipo, valor: num(r.valor), dia: r.dia, diaUtil: r.dia_util === true, categoria: r.categoria, forma: r.forma, metaId: r.meta_id, ativo: r.ativo !== false };
+    return { id: r.id, nome: r.nome, tipo: r.tipo, valor: num(r.valor), dia: r.dia, diaUtil: r.dia_util === true, externa: r.externa === true, ultimoPago: r.ultimo_pago || null, categoria: r.categoria, forma: r.forma, metaId: r.meta_id, ativo: r.ativo !== false };
   }
   function fromMeta(r) {
     return { id: r.id, nome: r.nome, alvo: num(r.alvo), inicial: num(r.inicial), prazo: r.prazo, status: r.status, ordem: r.ordem, nota: r.nota, sugestao: num(r.sugestao) };
