@@ -312,7 +312,7 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
       <button type="button" id="abrirImportar"><span>Importar extrato</span><span class="small muted">PDF, OFX, CSV</span></button>
     </nav>
 
-    <div class="acoes small rodape"><button type="button" class="linkbtn" id="backupBtn">Baixar backup</button><button type="button" class="linkbtn" id="sairBtn">Sair</button></div>
+    <div class="acoes small rodape"><button type="button" class="linkbtn" id="temaBtn">Tema: automático</button><button type="button" class="linkbtn" id="backupBtn">Baixar backup</button><button type="button" class="linkbtn" id="sairBtn">Sair</button></div>
   </div>
 
   <div class="view" id="view-contas" hidden>
@@ -1445,6 +1445,21 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
       else plugin("App").minimizeApp();
     });
   }
+
+  // tema: automático (segue o celular), claro ou escuro; fica salvo neste aparelho
+  const TEMAS = ["auto", "light", "dark"], TEMA_NOME = { auto: "automático", light: "claro", dark: "escuro" };
+  function aplicarTema(t) {
+    if (t === "auto") document.documentElement.removeAttribute("data-theme"); else document.documentElement.setAttribute("data-theme", t);
+    $("temaBtn").textContent = "Tema: " + TEMA_NOME[t];
+  }
+  let tema = "auto";
+  try { const salvo = localStorage.getItem("caixa-tema"); if (TEMAS.includes(salvo)) tema = salvo; } catch (e) {}
+  aplicarTema(tema);
+  $("temaBtn").addEventListener("click", () => {
+    tema = TEMAS[(TEMAS.indexOf(tema) + 1) % TEMAS.length];
+    aplicarTema(tema);
+    try { localStorage.setItem("caixa-tema", tema); } catch (e) {}
+  });
 
   // backup
   $("backupBtn").addEventListener("click", async () => {
