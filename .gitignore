@@ -1,7 +1,6 @@
 # Nunca suba dados pessoais nem chaves privadas
 *.backup.json
 caixa-backup-*.json
-ryo-backup-*.json
 migracao*.sql
 .env
 .env.*
