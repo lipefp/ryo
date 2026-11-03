@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#EEF2EA" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0F1512" media="(prefers-color-scheme: dark)">
-<meta name="description" content="Livro-caixa pessoal: quanto entrou, pra onde foi, quanto sobrou.">
-<title>Caixa</title>
+<meta name="description" content="Ryo, Personal Finance: quanto entrou, pra onde foi, quanto sobrou.">
+<title>Ryo</title>
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -262,7 +262,7 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
 
 <div class="wrap">
   <header class="top">
-    <h1>Caixa</h1>
+    <h1>Ryo</h1>
     <div class="monthnav" id="monthnav">
       <button id="prev" aria-label="Mês anterior">&#8249;</button>
       <span id="monthLabel">—</span>
@@ -404,7 +404,7 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
     </div>
     <section class="panel" id="impPrev" hidden aria-labelledby="impTitle">
       <div class="meta-head"><h2 id="impTitle">Conferir antes de importar</h2><span class="small muted" id="impResumo"></span></div>
-      <p class="hint" style="margin: 0">Os marcados como "parece já lançado" batem em data e valor com algo que já está no Caixa e vêm desmarcados.</p>
+      <p class="hint" style="margin: 0">Os marcados como "parece já lançado" batem em data e valor com algo que já está no Ryo e vêm desmarcados.</p>
       <div class="list" id="impLista"></div>
       <div class="salvar-bar"><button type="button" class="primary" id="impSalvar">Importar</button></div>
     </section>
@@ -991,7 +991,7 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
     });
     (CFG.cartoes || []).filter((c) => c.vencimento).forEach((c) => {
       const ab = Math.max(abertoCartao(c.id), 0);
-      itens.push({ kind: "fatura", c, nome: "Fatura " + c.nome, dia: c.vencimento, valor: ab || null, sinal: "= ", det: ab ? "em aberto no Caixa" : "valor: confira no app do banco", pago: faturaPaga(c, ym), entrada: false });
+      itens.push({ kind: "fatura", c, nome: "Fatura " + c.nome, dia: c.vencimento, valor: ab || null, sinal: "= ", det: ab ? "em aberto no Ryo" : "valor: confira no app do banco", pago: faturaPaga(c, ym), entrada: false });
     });
     return itens.sort((a, b) => a.dia - b.dia || a.nome.localeCompare(b.nome));
   }
@@ -1453,12 +1453,12 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
     $("temaBtn").textContent = "Tema: " + TEMA_NOME[t];
   }
   let tema = "auto";
-  try { const salvo = localStorage.getItem("caixa-tema"); if (TEMAS.includes(salvo)) tema = salvo; } catch (e) {}
+  try { const salvo = localStorage.getItem("ryo-tema") || localStorage.getItem("caixa-tema"); if (TEMAS.includes(salvo)) tema = salvo; } catch (e) {}
   aplicarTema(tema);
   $("temaBtn").addEventListener("click", () => {
     tema = TEMAS[(TEMAS.indexOf(tema) + 1) % TEMAS.length];
     aplicarTema(tema);
-    try { localStorage.setItem("caixa-tema", tema); } catch (e) {}
+    try { localStorage.setItem("ryo-tema", tema); } catch (e) {}
   });
 
   // backup
@@ -1466,15 +1466,15 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
     const json = JSON.stringify({ exportadoEm: new Date().toISOString(), metas, lancamentos: lanc }, null, 2);
     if (nativo) {
       try {
-        const arq = await plugin("Filesystem").writeFile({ path: "caixa-backup-" + todayISO() + ".json", data: json, directory: "CACHE", encoding: "utf8" });
-        await plugin("Share").share({ title: "Backup do Caixa", files: [arq.uri] });
+        const arq = await plugin("Filesystem").writeFile({ path: "ryo-backup-" + todayISO() + ".json", data: json, directory: "CACHE", encoding: "utf8" });
+        await plugin("Share").share({ title: "Backup do Ryo", files: [arq.uri] });
       } catch (e) { if (!/cancel/i.test(String(e && e.message))) $("status").textContent = "Não deu pra gerar o backup no app. Tente pelo computador."; }
       return;
     }
     const blob = new Blob([json], { type: "application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = "caixa-backup-" + todayISO() + ".json";
+    a.download = "ryo-backup-" + todayISO() + ".json";
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   });
