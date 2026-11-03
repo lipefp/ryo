@@ -1,111 +1,62 @@
 # Caixa
 
-Livro-caixa pessoal pro celular. Responde três perguntas: quanto sobrou na conta este mês, pra onde o dinheiro foi e quanto falta pra cada objetivo.
+Controle financeiro pessoal que eu fiz pra usar no celular. Mostra quanto sobrou na conta no mês, pra onde foi o dinheiro e quanto falta pras metas.
 
 <p>
-  <img src="docs/tela-principal.png" alt="Tela principal: sobra na conta, resumo do mês, parcelas e metas" width="300">
-  <img src="docs/tela-extrato.png" alt="Extrato do mês com gastos por categoria" width="300">
+  <img src="docs/tela-principal.png" alt="Tela principal" width="300">
+  <img src="docs/tela-extrato.png" alt="Extrato do mês" width="300">
 </p>
 
-## O que ele faz
+## Funcionalidades
 
-- **Sobra na conta:** entradas menos gastos pagos na conta, menos o que foi guardado, menos faturas pagas.
-- **Cartão de crédito do jeito certo:** a compra no cartão entra em "Gastou" na data da compra, mas só sai da conta quando você registra o pagamento da fatura. Assim nada é contado duas vezes.
-- **Parcelamentos:** lance "parcela 3 de 10" uma vez e as próximas parcelas aparecem nos meses certos. Um quadro mostra quanto já está comprometido nos próximos 6 meses.
-- **Metas:** alvo, prazo e quanto guardar por mês pra chegar lá.
-- **Extrato e categorias** de cada mês.
-- **Importar extrato:** lê o PDF do extrato da conta (testado com o do Santander), OFX ou CSV, sugere a categoria de cada linha e deixa de fora o que já foi lançado. Nada é salvo antes de você conferir.
-- **Contas do mês:** tudo que vence no mês em ordem de data, com situação (pago, vence em breve, atrasada), botão Pagar e aviso no topo quando algo vence em até 3 dias. Faturas entram com o dia de vencimento definido no `config.js`.
-- **Teto semanal:** mostra quanto do dia a dia já foi gasto na semana. Contas fixas e parcelas não entram nessa conta.
-- **Editar lançamento:** toque na descrição no extrato.
-- **Backup** em JSON a qualquer momento.
+- Lançamento de entradas, gastos, valores guardados e pagamento de fatura
+- Compras no cartão contam como gasto no dia da compra, mas só saem da conta quando a fatura é paga
+- Parcelamentos: as parcelas seguintes aparecem sozinhas nos próximos meses
+- Metas com valor, prazo e quanto guardar por mês
+- Extrato do mês separado por categoria
+- Importação de extrato em PDF (testado com Santander), OFX e CSV
+- Contas do mês com vencimento, inclusive em dia útil, e aviso quando algo vence em até 3 dias
+- Contas só de lembrete, pra contas que eu pago mas com dinheiro de outra conta
+- Teto de gastos semanal
+- Lançamento automático pelas notificações do banco (via MacroDroid)
+- Backup em JSON
 
-Cada valor tem cor e sinal próprios: `+` entrada, `−` gasto, `→` guardado, `=` pagamento de fatura. Parcelas futuras aparecem com contorno tracejado.
+## Stack
 
-## Tecnologia
-
-- Front: HTML, CSS e JavaScript, sem framework e sem etapa de build. Um único `index.html`.
-- Banco: PostgreSQL no [Supabase](https://supabase.com), com login por e-mail e senha.
-- Hospedagem: GitHub Pages (ou qualquer hospedagem de arquivos estáticos).
-- App Android: o mesmo `index.html` empacotado com [Capacitor](https://capacitorjs.com). O APK é gerado pelo GitHub Actions.
+- HTML, CSS e JavaScript puro, sem build
+- Supabase (PostgreSQL + Auth) com Row Level Security
+- GitHub Pages
+- App Android com Capacitor, gerado pelo GitHub Actions
 
 ## Segurança
 
-- As tabelas usam **Row Level Security**: cada usuário só lê e grava as próprias linhas. As regras estão em [`supabase/schema.sql`](supabase/schema.sql).
-- O `config.js` traz a URL do projeto e a chave **publishable** (ou a antiga **anon**). As duas são públicas por design. Sem login, essa chave não acessa nenhum dado.
-- As chaves **secret** e **service_role** nunca entram no front nem no repositório.
-- Recomendado para uso pessoal: crie seu usuário pelo painel e **desative novos cadastros** (passo 3 abaixo). Assim ninguém mais consegue criar conta no seu projeto.
+Cada tabela tem RLS: o usuário logado só acessa as próprias linhas. A chave que fica no `config.js` é a publishable, que é pública e não acessa nada sem login. Chave secret ou service_role não entra no repositório.
 
-## Como instalar
+Pra uso pessoal, vale desativar novos cadastros no Supabase (Authentication > Sign In / Providers > Allow new users to sign up).
 
-### 1. Criar o projeto no Supabase
+## Como rodar
 
-1. Crie uma conta em supabase.com e um projeto novo (o plano gratuito basta).
-2. Abra **SQL Editor**, cole o conteúdo de `supabase/schema.sql` e rode. Depois faça o mesmo com `supabase/002-fixas-teto-importacao.sql`.
-
-### 2. Criar seu usuário
-
-Em **Authentication → Users → Add user**, crie o usuário com e-mail e senha. Marque a opção de confirmar o e-mail automaticamente.
-
-### 3. Fechar o cadastro
-
-Em **Authentication → Sign In / Providers**, desative **Allow new users to sign up**. O app não tem tela de cadastro, mas desativar aqui garante que ninguém crie conta pela API.
-
-### 4. Configurar o app
-
-No botão **Connect** do painel (ou em **Project Settings → API Keys**), copie a **Project URL** e a chave **publishable** (`sb_publishable_...`) para o `config.js`. No mesmo arquivo, ajuste seus cartões, categorias e atalhos.
-
-O `id` de cada cartão fica gravado nos lançamentos. Escolha uma vez e não mude.
-
-### 5. Publicar no GitHub Pages
-
-1. Suba os arquivos para um repositório.
-2. Em **Settings → Pages**, escolha **Deploy from a branch**, branch `main`, pasta `/ (root)`.
-3. Em **Authentication → URL Configuration** no Supabase, coloque o endereço do Pages (`https://SEU-USUARIO.github.io/caixa/`) em **Site URL**.
-
-### 6. App Android (opcional)
-
-A cada mudança no `index.html` ou no `config.js`, o workflow `.github/workflows/apk.yml` gera o APK e publica em **Releases → App Android** (`caixa.apk`). O app abre sem navegador e fala direto com o Supabase.
-
-Pra que cada APK novo instale por cima do anterior, salve uma chave de assinatura fixa em **Settings → Secrets and variables → Actions** com o nome `ANDROID_DEBUG_KEYSTORE` (o arquivo `.keystore` em base64). Sem ela, o Android pede pra desinstalar a versão antiga antes. Os dados ficam no Supabase, então nada se perde.
-
-Pra gerar localmente: `npm install`, `npm run app:preparar`, `npx cap add android` e abra a pasta `android/` no Android Studio.
-
-### 7. Atalho no celular
-
-Abra o endereço no Chrome, toque em **⋮ → Adicionar à tela inicial**. O app abre em tela cheia, com ícone próprio.
-
-## Rodar localmente
-
-Qualquer servidor estático serve:
+1. Crie um projeto no Supabase e rode os arquivos da pasta `supabase/` no SQL Editor, em ordem: `schema.sql`, depois `002` a `005`.
+2. Crie o usuário em Authentication > Users > Add user.
+3. Coloque a Project URL e a chave publishable no `config.js`. No mesmo arquivo dá pra ajustar cartões, categorias e atalhos.
+4. Publique no GitHub Pages (Settings > Pages > branch `main`) ou rode local:
 
 ```bash
 python3 -m http.server 8000
-# abra http://localhost:8000
 ```
 
-## Estrutura
+## App Android
 
-```
-index.html             app inteiro (HTML, CSS e JS)
-config.js              URL do Supabase, chave anon, cartões, categorias e atalhos
-supabase/schema.sql    tabelas, índices, Row Level Security e tempo real
-supabase/002-*.sql     contas fixas, teto semanal e campos de importação
-supabase/003-*.sql     lançamento automático a partir das notificações do banco
-supabase/004-*.sql     contas com vencimento em dia útil
-capacitor.config.json  configuração do app Android
-scripts/               monta a pasta www/ do app
-android-res/           ícone e tela de abertura do app
-manifest.webmanifest   instalação na tela inicial
-icon.svg               ícone
-```
+O workflow `.github/workflows/apk.yml` gera o APK a cada mudança no app e publica em Releases. Pra uma versão instalar por cima da outra, a chave de assinatura fica no secret `ANDROID_DEBUG_KEYSTORE` (keystore em base64).
 
-## Próximos passos
+Pra gerar na mão: `npm install`, `npm run app:preparar`, `npx cap add android` e abrir a pasta `android/` no Android Studio.
 
-- [ ] Importar a fatura do cartão em PDF
-- [ ] API própria em Django REST como alternativa ao Supabase
-- [ ] Gráfico de evolução da sobra mês a mês
+## Ideias
+
+- [ ] Importar fatura do cartão em PDF
+- [ ] Backend próprio em Django REST
+- [ ] Gráfico da sobra mês a mês
 
 ## Licença
 
-[MIT](LICENSE)
+MIT

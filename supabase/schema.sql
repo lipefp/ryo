@@ -1,14 +1,6 @@
--- Caixa: esquema do banco (Supabase / PostgreSQL)
--- Rode este arquivo inteiro uma vez no SQL Editor do Supabase.
---
--- Segurança: as duas tabelas usam Row Level Security (RLS).
--- Cada linha guarda o dono em user_id, e as políticas abaixo só deixam
--- o usuário logado ler e gravar as próprias linhas. A chave pública
--- (anon key) que vai no front não dá acesso a nada sem login.
+-- Tabelas principais (metas e lançamentos) com RLS por user_id.
 
--- ---------------------------------------------------------------
 -- Metas
--- ---------------------------------------------------------------
 create table if not exists public.metas (
   id         uuid primary key default gen_random_uuid(),
   user_id    uuid not null default auth.uid() references auth.users (id) on delete cascade,
@@ -23,11 +15,9 @@ create table if not exists public.metas (
   criado_em  timestamptz not null default now()
 );
 
--- ---------------------------------------------------------------
 -- Lançamentos
--- tipo:  entrada | gasto | guardado (vai para uma meta) | fatura (pagamento de fatura)
--- forma: 'conta' para Pix/débito, ou o id de um cartão definido no config.js
--- ---------------------------------------------------------------
+-- tipo: entrada | gasto | guardado | fatura
+-- forma: 'conta' (Pix/débito) ou o id do cartão no config.js
 create table if not exists public.lancamentos (
   id         uuid primary key default gen_random_uuid(),
   user_id    uuid not null default auth.uid() references auth.users (id) on delete cascade,
@@ -49,9 +39,7 @@ create table if not exists public.lancamentos (
 create index if not exists lancamentos_user_data_idx on public.lancamentos (user_id, data);
 create index if not exists metas_user_ordem_idx on public.metas (user_id, ordem);
 
--- ---------------------------------------------------------------
 -- Row Level Security
--- ---------------------------------------------------------------
 alter table public.metas enable row level security;
 alter table public.lancamentos enable row level security;
 
@@ -97,9 +85,7 @@ create trigger lancamento_meta_do_dono
   before insert or update on public.lancamentos
   for each row execute function public.lancamento_meta_do_dono();
 
--- ---------------------------------------------------------------
--- Tempo real (o app atualiza sozinho no celular e no PC)
--- ---------------------------------------------------------------
+-- Realtime
 do $$
 begin
   if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and tablename = 'lancamentos') then

@@ -34,8 +34,6 @@ jobs:
           cp -r android-res/. android/app/src/main/res/
           npx cap sync android
 
-      # Chave de assinatura fixa (opcional). Sem ela, cada APK novo
-      # pede pra desinstalar o anterior antes de instalar.
       - name: Chave de assinatura
         env:
           KEYSTORE: ${{ secrets.ANDROID_DEBUG_KEYSTORE }}

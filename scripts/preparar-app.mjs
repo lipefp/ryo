@@ -1,6 +1,4 @@
-// Monta a pasta www/ que vai dentro do app Android.
-// Copia o site e troca os scripts de CDN por cópias locais,
-// pra o app abrir mesmo com internet ruim.
+// Monta a pasta www/ do app, com o supabase-js local em vez do CDN.
 import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 
 const SUPABASE_CDN = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js";

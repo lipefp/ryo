@@ -1,13 +1,7 @@
--- Caixa: migração 003
--- Lançamento automático a partir das notificações do banco no celular.
--- Um app de automação (ex.: MacroDroid) chama a função registrar_notificacao
--- com o texto da notificação e um token secreto. A função guarda a notificação,
--- tenta entender valor, tipo e estabelecimento e cria o lançamento.
--- Rode este arquivo inteiro uma vez no SQL Editor, depois do 002.
+-- 003: lançamento automático pelas notificações do banco
+-- O MacroDroid chama registrar_notificacao() com o texto da notificação e um token.
 
--- ---------------------------------------------------------------
--- Tokens de automação (um por usuário). Só o hash do token fica salvo.
--- ---------------------------------------------------------------
+-- token de cada usuário (só o hash)
 create table if not exists public.automacao (
   user_id     uuid primary key references auth.users (id) on delete cascade,
   token_hash  text not null unique,
@@ -15,11 +9,9 @@ create table if not exists public.automacao (
   criado_em   timestamptz not null default now()
 );
 alter table public.automacao enable row level security;
--- Sem políticas: ninguém lê nem grava esta tabela pela API. Só o SQL Editor e a função abaixo.
+-- sem policies: só a função acessa
 
--- ---------------------------------------------------------------
--- Notificações recebidas (todas, mesmo as não entendidas)
--- ---------------------------------------------------------------
+-- log das notificações recebidas
 create table if not exists public.notificacoes (
   id             uuid primary key default gen_random_uuid(),
   user_id        uuid not null references auth.users (id) on delete cascade,
@@ -37,9 +29,7 @@ drop policy if exists "notificacoes: dono apaga" on public.notificacoes;
 create policy "notificacoes: dono le"    on public.notificacoes for select to authenticated using ((select auth.uid()) = user_id);
 create policy "notificacoes: dono apaga" on public.notificacoes for delete to authenticated using ((select auth.uid()) = user_id);
 
--- ---------------------------------------------------------------
--- Categoria a partir do texto
--- ---------------------------------------------------------------
+-- categoria pelo texto
 create or replace function public.caixa_categoria(p text)
 returns text
 language sql
@@ -58,9 +48,7 @@ as $$
   end;
 $$;
 
--- ---------------------------------------------------------------
--- Função chamada pelo celular
--- ---------------------------------------------------------------
+-- chamada pelo celular
 create or replace function public.registrar_notificacao(p_token text, p_app text default null, p_titulo text default null, p_texto text default null)
 returns jsonb
 language plpgsql

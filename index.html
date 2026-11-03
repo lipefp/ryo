@@ -419,7 +419,7 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
     return MONTHS.format(new Date(y, m - 1, 1));
   }
 
-  // ---------- form ----------
+  // form
   const sel = $("categoria");
   CATS.forEach((c) => { const o = document.createElement("option"); o.value = c; o.textContent = c; sel.appendChild(o); });
   $("data").value = todayISO();
@@ -552,7 +552,7 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
   $("prev").addEventListener("click", () => { viewYM = shiftYM(viewYM, -1); render(); });
   $("next").addEventListener("click", () => { viewYM = shiftYM(viewYM, 1); render(); });
 
-  // ---------- render ----------
+  // render
   function guardadoDe(m) {
     return (m.inicial || 0) + lanc.filter((l) => l.tipo === "guardado" && l.metaId === m.id).reduce((s, l) => s + l.valor, 0);
   }
@@ -791,7 +791,7 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
   }
 
 
-  // ---------- views ----------
+  // views
   function showView(v, focusEl) {
     ["login", "main", "lancar", "extrato", "importar"].forEach((k) => { $("view-" + k).hidden = k !== v; });
     $("abrirLancar").hidden = v === "lancar" || v === "login" || v === "importar";
@@ -808,7 +808,7 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
   setTipo("gasto");
   render();
 
-  // ---------- semana (teto) ----------
+  // semana (teto)
   function isoDia(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
   function inicioSemana(d) { const x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return x; }
   function contaNoDiaADia(l) { return l.tipo === "gasto" && !l.recorrenteId && !l.grupo && l.categoria !== "Cartão (fatura)"; }
@@ -848,14 +848,14 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
     catch (err) { $("status").textContent = "Não deu pra salvar o teto. Tente de novo."; }
   });
 
-  // ---------- contas fixas ----------
-  // Conta "só lembrete" (paga com dinheiro de outra conta): não gera lançamento, só guarda o último mês pago
+  // contas fixas
+  // conta só de lembrete: não gera lançamento, guarda o último mês pago
   function fixaLancada(r, ym) {
     if (r.externa) return !!r.ultimoPago && r.ultimoPago >= ym;
     return lanc.some((l) => l.recorrenteId === r.id && (l.data || "").slice(0, 7) === ym);
   }
   function mesAnterior(ym) { const [y, m] = ym.split("-").map(Number); const d = new Date(y, m - 2, 1); return d.getFullYear() + "-" + pad(d.getMonth() + 1); }
-  // Feriados nacionais (bancos fechados), incluindo os que dependem da Páscoa
+  // feriados nacionais + os móveis (carnaval, sexta santa, corpus christi)
   const feriadosCache = {};
   function feriados(y) {
     if (feriadosCache[y]) return feriadosCache[y];
@@ -866,7 +866,6 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
     const set = new Set(["01-01", "04-21", "05-01", "09-07", "10-12", "11-02", "11-15", "11-20", "12-25", desl(-48), desl(-47), desl(-2), desl(60)]);
     return (feriadosCache[y] = set);
   }
-  // Dia do mês em que a conta vence. Em "dia útil", conta só segunda a sexta, sem feriados.
   function diaDe(r, ym) {
     if (!r.diaUtil) return r.dia;
     const [y, m] = ym.split("-").map(Number);
@@ -1083,7 +1082,7 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
       $("status").textContent = /externa/.test(msg) ? "Pra criar lembretes, rode o arquivo supabase/005-lembretes.sql no Supabase." : /dia_util/.test(msg) ? "Pra usar dia útil, rode o arquivo supabase/004-dia-util.sql no Supabase." : "Não deu pra criar a conta fixa. Tente de novo."; }
   });
 
-  // ---------- editar lançamento ----------
+  // editar lançamento
   function startEdit(l) {
     editId = l.id;
     showView("lancar", "valor");
@@ -1107,7 +1106,7 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
   }
   $("cancelEdit").addEventListener("click", () => { endEdit(); $("formMsg").textContent = ""; showView("extrato", "voltar"); });
 
-  // ---------- importar extrato ----------
+  // importar extrato
   const RX_FATURA = /PAGAMENTO\s+(DE\s+)?CART|PAGTO\.?\s*CART|PAG\.?\s*FATURA|FATURA\s+CART/i;
   const REGRAS = [].concat(
     (CFG.regras || []).filter((r) => r && r.contem && r.categoria).map((r) => [new RegExp(String(r.contem).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"), r.categoria]),
@@ -1327,7 +1326,7 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
     finally { $("impSalvar").disabled = false; }
   });
 
-  // ---------- nova meta ----------
+  // nova meta
   $("novaMetaBtn").addEventListener("click", () => { $("novaMetaForm").hidden = false; $("nmNome").focus(); });
   $("nmCancelar").addEventListener("click", () => { $("novaMetaForm").hidden = true; });
   $("novaMetaForm").addEventListener("submit", async (e) => {
@@ -1344,12 +1343,11 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
     } catch (err) { $("status").textContent = "Não deu pra criar a meta. Tente de novo."; }
   });
 
-  // ---------- app Android (Capacitor) ----------
-  // No site, nada disto roda. No APK, o capacitor.js expõe os plugins nativos.
+  // app Android (Capacitor)
   const nativo = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform() && window.capacitorExports);
   const plugin = (nome) => nativo ? window.capacitorExports.registerPlugin(nome) : null;
   if (nativo) {
-    // Botão "voltar" do Android: volta pro resumo em vez de fechar o app
+    // voltar do Android volta pro resumo
     plugin("App").addListener("backButton", () => {
       const aberta = ["lancar", "extrato", "importar"].find((k) => !$("view-" + k).hidden);
       if (aberta === "lancar") $("voltarLancar").click();
@@ -1359,11 +1357,10 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
     });
   }
 
-  // ---------- backup ----------
+  // backup
   $("backupBtn").addEventListener("click", async () => {
     const json = JSON.stringify({ exportadoEm: new Date().toISOString(), metas, lancamentos: lanc }, null, 2);
     if (nativo) {
-      // No app: salva o arquivo e abre o menu de compartilhar (Drive, WhatsApp, e-mail...)
       try {
         const arq = await plugin("Filesystem").writeFile({ path: "caixa-backup-" + todayISO() + ".json", data: json, directory: "CACHE", encoding: "utf8" });
         await plugin("Share").share({ title: "Backup do Caixa", files: [arq.uri] });
@@ -1378,7 +1375,7 @@ textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   });
 
-  // ---------- Supabase ----------
+  // Supabase
   const num = (v) => (v === null || v === undefined ? null : Number(v));
   function fromLanc(r) {
     return { id: r.id, tipo: r.tipo, valor: num(r.valor), data: r.data, descricao: r.descricao, categoria: r.categoria, forma: r.forma, cartao: r.cartao, metaId: r.meta_id, grupo: r.grupo, parcela: r.parcela, parcelas: r.parcelas, base: r.base, criadoEm: r.criado_em, recorrenteId: r.recorrente_id || null, importRef: r.import_ref || null };

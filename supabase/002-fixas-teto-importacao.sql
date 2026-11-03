@@ -1,10 +1,6 @@
--- Caixa: migração 002
--- Contas fixas (recorrentes), teto semanal (ajustes) e importação de extrato.
--- Rode este arquivo inteiro uma vez no SQL Editor, depois do schema.sql.
+-- 002: contas fixas, teto semanal e campos da importação de extrato
 
--- ---------------------------------------------------------------
 -- Contas fixas
--- ---------------------------------------------------------------
 create table if not exists public.recorrentes (
   id         uuid primary key default gen_random_uuid(),
   user_id    uuid not null default auth.uid() references auth.users (id) on delete cascade,
@@ -20,18 +16,14 @@ create table if not exists public.recorrentes (
 );
 create index if not exists recorrentes_user_idx on public.recorrentes (user_id);
 
--- ---------------------------------------------------------------
 -- Ajustes por usuário (teto semanal)
--- ---------------------------------------------------------------
 create table if not exists public.ajustes (
   user_id       uuid primary key default auth.uid() references auth.users (id) on delete cascade,
   teto_semanal  numeric(12, 2) check (teto_semanal >= 0),
   atualizado_em timestamptz not null default now()
 );
 
--- ---------------------------------------------------------------
 -- Novas colunas em lançamentos
--- ---------------------------------------------------------------
 alter table public.lancamentos add column if not exists recorrente_id uuid;
 alter table public.lancamentos add column if not exists import_ref text;
 
@@ -46,9 +38,7 @@ begin
   end if;
 end $$;
 
--- ---------------------------------------------------------------
 -- Row Level Security
--- ---------------------------------------------------------------
 alter table public.recorrentes enable row level security;
 alter table public.ajustes enable row level security;
 
@@ -96,7 +86,7 @@ create trigger lancamento_recorrente_do_dono
   before insert or update on public.lancamentos
   for each row execute function public.lancamento_recorrente_do_dono();
 
--- Tempo real
+-- Realtime
 do $$
 begin
   if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and tablename = 'recorrentes') then
