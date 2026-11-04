@@ -138,6 +138,8 @@ input[type="date"] { font-family: var(--mono); font-size: 15px; }
 .small { font-size: 0.8rem; }
 .check { display: flex; gap: 10px; align-items: center; font-size: 0.95rem; min-height: 44px; color: var(--ink) !important; }
 .check input { width: 20px; height: 20px; accent-color: var(--accent); }
+#view-auto section + section, #autoNativo section + section { margin-top: 18px; }
+.auto-passo { margin: 0; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
 .comp { display: grid; }
 .comp-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
 .comp-row:last-child { border-bottom: 0; }
@@ -313,6 +315,7 @@ h1, h2, .titulo { font-weight: 800; letter-spacing: -0.03em; }
       <button type="button" id="abrirExtrato"><span>Extrato</span><span class="small muted" id="extratoCount"></span></button>
       <button type="button" id="abrirMetas"><span>Metas</span><span class="small muted" id="metasCount"></span></button>
       <button type="button" id="abrirImportar"><span>Importar</span><span class="small muted">extrato ou fatura</span></button>
+      <button type="button" id="abrirAuto"><span>Lançar sozinho</span><span class="small muted" id="autoInfo">notificações do banco</span></button>
     </nav>
 
     <div class="acoes small rodape"><button type="button" class="linkbtn" id="temaBtn">Tema: automático</button><button type="button" class="linkbtn" id="backupBtn">Baixar backup</button><button type="button" class="linkbtn" id="sairBtn">Sair</button></div>
@@ -410,6 +413,52 @@ h1, h2, .titulo { font-weight: 800; letter-spacing: -0.03em; }
       <p class="hint" style="margin: 0">Os marcados como "parece já lançado" batem em data e valor com algo que já está no Ryo e vêm desmarcados.</p>
       <div class="list" id="impLista"></div>
       <div class="salvar-bar"><button type="button" class="primary" id="impSalvar">Importar</button></div>
+    </section>
+  </div>
+
+  <div class="view" id="view-auto" hidden>
+    <button type="button" class="back" id="voltarAuto">&#8249; Início</button>
+    <h2 style="font-size: 1.6rem; font-weight: 700">Lançar sozinho</h2>
+    <p class="small muted" style="margin: 0" id="autoIntro">Quando o banco avisa uma compra, um Pix ou um salário no celular, o Ryo lança pra você. Só os apps que você marcar são lidos.</p>
+
+    <div id="autoNativo" hidden>
+      <section class="panel fields" aria-labelledby="autoPassos">
+        <h3 id="autoPassos" class="small muted full auto-passo">1. Permitir</h3>
+        <div class="acoes full" style="justify-content: space-between">
+          <span id="autoPerm">Acesso às notificações: verificando…</span>
+          <button type="button" class="pagar-btn" id="autoPermBtn">Permitir</button>
+        </div>
+        <p class="hint full" style="margin: 0" id="autoRestrito" hidden>Se o botão aparecer apagado com "Configuração restrita": abra <button type="button" class="linkbtn" id="autoInfoApp">Informações do app</button>, toque nos três pontinhos lá em cima e em "Permitir configurações restritas". Depois volte e permita.</p>
+      </section>
+
+      <section class="panel fields" aria-labelledby="autoBancosT">
+        <h3 id="autoBancosT" class="small muted full auto-passo">2. Escolher os bancos</h3>
+        <div class="list full" id="autoApps"><span class="small muted">Carregando apps…</span></div>
+        <button type="button" class="linkbtn full" id="autoTodos" hidden>Mostrar todos os apps</button>
+        <div class="field full" id="autoCartaoBox"><label for="autoCartao">Compras no cartão entram em</label><select id="autoCartao"></select></div>
+      </section>
+
+      <section class="panel fields" aria-labelledby="autoAtivarT">
+        <h3 id="autoAtivarT" class="small muted full auto-passo">3. Ligar</h3>
+        <button type="button" class="primary full" id="autoAtivar">Ligar</button>
+        <div class="acoes small full"><button type="button" class="linkbtn" id="autoTestar" hidden>Testar conexão</button><button type="button" class="linkbtn" id="autoDesligar" hidden>Desligar</button></div>
+        <div class="formmsg full" id="autoMsg" aria-live="polite"></div>
+      </section>
+    </div>
+
+    <div id="autoWeb" hidden>
+      <section class="panel fields">
+        <p class="small full" style="margin: 0">Neste aparelho o Ryo não consegue ler as notificações. No Android, instale o app do Ryo e ligue por ele. No iPhone, a Apple não deixa nenhum app ler notificações de outro, mas dá pra usar o app Atalhos com a chave abaixo.</p>
+        <div class="acoes full" style="justify-content: space-between"><span id="autoWebStatus" class="small muted"></span><button type="button" class="pagar-btn" id="autoGerar">Gerar chave</button></div>
+        <div class="field full" id="autoChaveBox" hidden><label for="autoChave">Sua chave (aparece só agora)</label><input id="autoChave" readonly><button type="button" class="linkbtn" id="autoCopiar">Copiar</button></div>
+        <p class="hint full" style="margin: 0">Gerar uma chave nova desliga a anterior, inclusive a do app Android.</p>
+        <div class="formmsg full" id="autoWebMsg" aria-live="polite"></div>
+      </section>
+    </div>
+
+    <section class="panel" aria-labelledby="autoLogT">
+      <div class="meta-head"><h2 id="autoLogT">Últimas notificações</h2><button type="button" class="linkbtn small" id="autoAtualizar">Atualizar</button></div>
+      <div class="list" id="autoLog"><span class="small muted">Nenhuma ainda.</span></div>
     </section>
   </div>
 
@@ -893,9 +942,9 @@ h1, h2, .titulo { font-weight: 800; letter-spacing: -0.03em; }
 
   // views
   function showView(v, focusEl) {
-    ["login", "main", "lancar", "extrato", "importar", "contas", "metas"].forEach((k) => { $("view-" + k).hidden = k !== v; });
-    $("abrirLancar").hidden = v === "lancar" || v === "login" || v === "importar";
-    $("monthnav").style.visibility = v === "lancar" || v === "login" || v === "importar" || v === "metas" ? "hidden" : "visible";
+    ["login", "main", "lancar", "extrato", "importar", "contas", "metas", "auto"].forEach((k) => { $("view-" + k).hidden = k !== v; });
+    $("abrirLancar").hidden = v === "lancar" || v === "login" || v === "importar" || v === "auto";
+    $("monthnav").style.visibility = v === "lancar" || v === "login" || v === "importar" || v === "metas" || v === "auto" ? "hidden" : "visible";
     window.scrollTo(0, 0);
     if (focusEl) $(focusEl).focus();
   }
@@ -1574,13 +1623,148 @@ h1, h2, .titulo { font-weight: 800; letter-spacing: -0.03em; }
   if (nativo) {
     // voltar do Android volta pro resumo
     plugin("App").addListener("backButton", () => {
-      const aberta = ["lancar", "extrato", "importar", "contas", "metas"].find((k) => !$("view-" + k).hidden);
+      const aberta = ["lancar", "extrato", "importar", "contas", "metas", "auto"].find((k) => !$("view-" + k).hidden);
       if (aberta === "lancar") $("voltarLancar").click();
       else if (aberta === "extrato") $("voltar").click();
       else if (aberta === "importar") $("voltarImportar").click();
       else if (aberta === "contas") $("voltarContas").click();
       else if (aberta === "metas") $("voltarMetas").click();
+      else if (aberta === "auto") $("voltarAuto").click();
       else plugin("App").minimizeApp();
+    });
+  }
+
+  // lançar sozinho: leitura das notificações do banco (app Android) ou chave pro Atalhos (iPhone)
+  const NOTIF_STATUS = { lancado: "lançado", ignorado: "ignorado", duplicado: "repetida", sem_valor: "sem valor" };
+  const notif = plugin("RyoNotif");
+  let autoApps = null, autoSel = new Set(), autoTodos = false, autoSt = null;
+  $("autoNativo").hidden = !nativo;
+  $("autoWeb").hidden = nativo;
+  Object.keys(CARDS).forEach((k) => { const o = document.createElement("option"); o.value = k; o.textContent = CARDS[k]; $("autoCartao").appendChild(o); });
+  $("autoCartao").insertAdjacentHTML("afterbegin", '<option value="">Só na conta (débito)</option>');
+  if (CARDS.santander) $("autoCartao").value = "santander";
+
+  async function autoLog() {
+    if (!db) return;
+    const box = $("autoLog");
+    const r = await sb.from("notificacoes").select("app,titulo,texto,status,recebido_em").order("recebido_em", { ascending: false }).limit(15);
+    if (r.error || !r.data || !r.data.length) { box.replaceChildren(); const v = document.createElement("span"); v.className = "small muted"; v.textContent = "Nenhuma ainda."; box.append(v); return; }
+    box.replaceChildren(...r.data.map((n) => {
+      const row = document.createElement("div"); row.className = "row";
+      const d = document.createElement("div"); d.className = "d";
+      const t1 = document.createElement("div"); t1.textContent = [n.titulo, n.texto].filter(Boolean).join(" · ").slice(0, 140) || "(sem texto)";
+      const t2 = document.createElement("div");
+      const dt = new Date(n.recebido_em);
+      t2.textContent = (n.app || "") + " · " + dt.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }) + " " + dt.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+      d.append(t1, t2);
+      const st = document.createElement("span"); st.className = "small"; st.textContent = NOTIF_STATUS[n.status] || n.status;
+      st.style.color = n.status === "lancado" ? "var(--accent)" : "var(--muted)";
+      row.append(d, st, document.createElement("span"));
+      return row;
+    }));
+  }
+
+  function autoRenderApps() {
+    const box = $("autoApps"); box.replaceChildren();
+    if (!autoApps) return;
+    const lista = autoApps.filter((a) => autoTodos || a.banco || autoSel.has(a.pacote));
+    $("autoTodos").hidden = autoTodos || lista.length === autoApps.length;
+    if (!lista.length) { const v = document.createElement("span"); v.className = "small muted"; v.textContent = "Nenhum app de banco achado. Toque em mostrar todos."; box.append(v); }
+    lista.forEach((a, i) => {
+      const l = document.createElement("label"); l.className = "check";
+      const cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = autoSel.has(a.pacote);
+      cb.addEventListener("change", () => { if (cb.checked) autoSel.add(a.pacote); else autoSel.delete(a.pacote); autoBotoes(); });
+      l.append(cb, document.createTextNode(" " + a.nome));
+      box.append(l);
+    });
+  }
+
+  function autoBotoes() {
+    const ligado = autoSt && autoSt.ativo && autoSt.temChave;
+    $("autoAtivar").textContent = ligado ? "Salvar bancos" : "Ligar";
+    $("autoTestar").hidden = !ligado;
+    $("autoDesligar").hidden = !ligado;
+    $("autoCartaoBox").hidden = !!ligado;
+  }
+
+  async function autoAtualizar() {
+    if (nativo && notif) {
+      try {
+        autoSt = await notif.status();
+        $("autoPerm").textContent = "Acesso às notificações: " + (autoSt.permitido ? "permitido" : "não permitido");
+        $("autoPermBtn").textContent = autoSt.permitido ? "Ajustar" : "Permitir";
+        $("autoPermBtn").classList.toggle("ghost", !!autoSt.permitido);
+        $("autoRestrito").hidden = autoSt.permitido;
+        if (!autoApps) {
+          autoSel = new Set(autoSt.pacotes || []);
+          autoApps = (await notif.listarApps()).apps || [];
+        }
+        autoRenderApps(); autoBotoes();
+        const pend = autoSt.pendentes ? " · " + autoSt.pendentes + " esperando internet" : "";
+        $("autoInfo").textContent = autoSt.ativo && autoSt.temChave ? (autoSt.permitido ? "ligado" : "falta permitir") + pend : "desligado";
+      } catch (e) { $("autoMsg").textContent = "Não consegui ler o estado do app."; }
+    } else if (db) {
+      const r = await sb.rpc("automacao_status");
+      $("autoWebStatus").textContent = r.error ? "" : r.data && r.data.ativa ? "Chave criada em " + new Date(r.data.desde).toLocaleDateString("pt-BR") : "Nenhuma chave ainda";
+    }
+    autoLog().catch(() => {});
+  }
+
+  async function novaChave(cartao) {
+    const r = await sb.rpc("gerar_token_automacao", { p_cartao: cartao || null });
+    if (r.error) throw new Error(/gerar_token_automacao|function|schema cache/i.test(r.error.message) ? "Falta rodar o supabase/007-chave-automacao.sql no Supabase." : "Não consegui criar a chave. Tente de novo.");
+    return r.data;
+  }
+
+  $("abrirAuto").addEventListener("click", () => { showView("auto", "voltarAuto"); autoAtualizar(); });
+  $("voltarAuto").addEventListener("click", () => showView("main", "abrirAuto"));
+  $("autoAtualizar").addEventListener("click", autoAtualizar);
+  $("autoTodos").addEventListener("click", () => { autoTodos = true; autoRenderApps(); });
+  if (nativo && notif) {
+    $("autoPermBtn").addEventListener("click", () => notif.abrirConfiguracao());
+    $("autoInfoApp").addEventListener("click", () => notif.abrirInfoDoApp());
+    plugin("App").addListener("resume", () => { if (!$("view-auto").hidden) autoAtualizar(); });
+    $("autoAtivar").addEventListener("click", async () => {
+      const msg = $("autoMsg");
+      if (!autoSel.size) { msg.textContent = "Marque pelo menos um banco."; return; }
+      $("autoAtivar").disabled = true; msg.textContent = "Ligando…";
+      try {
+        const dados = { pacotes: [...autoSel] };
+        if (!(autoSt && autoSt.ativo && autoSt.temChave)) {
+          dados.token = await novaChave($("autoCartao").value);
+          dados.url = CFG.supabaseUrl; dados.chave = CFG.supabaseAnonKey;
+        }
+        await notif.salvar(dados);
+        await autoAtualizar();
+        msg.textContent = autoSt && autoSt.permitido ? "Pronto. As próximas notificações desses bancos viram lançamento." : "Salvo. Agora toque em Permitir pra ele conseguir ler as notificações.";
+      } catch (e) { msg.textContent = e.message || "Não consegui ligar."; }
+      $("autoAtivar").disabled = false;
+    });
+    $("autoTestar").addEventListener("click", async () => {
+      const msg = $("autoMsg"); msg.textContent = "Testando…";
+      try {
+        const r = await notif.testar();
+        msg.textContent = r.ok ? "Conexão ok. O teste aparece na lista abaixo como \"sem valor\"." : r.codigo === 401 || r.codigo === 400 ? "A chave não vale mais. Desligue e ligue de novo." : "O servidor respondeu " + r.codigo + ".";
+      } catch (e) { msg.textContent = "Sem internet agora."; }
+      autoLog().catch(() => {});
+    });
+    $("autoDesligar").addEventListener("click", async () => {
+      await notif.desativar();
+      await autoAtualizar();
+      $("autoMsg").textContent = "Desligado. Nada mais é lido.";
+    });
+  } else {
+    $("autoGerar").addEventListener("click", async () => {
+      const msg = $("autoWebMsg"); msg.textContent = "";
+      try {
+        const t = await novaChave(CARDS.santander ? "santander" : null);
+        $("autoChave").value = t; $("autoChaveBox").hidden = false;
+        autoAtualizar();
+      } catch (e) { msg.textContent = e.message; }
+    });
+    $("autoCopiar").addEventListener("click", async () => {
+      try { await navigator.clipboard.writeText($("autoChave").value); $("autoWebMsg").textContent = "Copiada."; }
+      catch (e) { $("autoChave").select(); }
     });
   }
 
@@ -1689,6 +1873,7 @@ h1, h2, .titulo { font-weight: 800; letter-spacing: -0.03em; }
     try {
       await api.loadAll();
       $("status").textContent = "";
+      if (nativo) autoAtualizar();
     } catch (e) {
       $("status").textContent = "Não consegui carregar seus dados. Confira a internet e recarregue a página.";
     }

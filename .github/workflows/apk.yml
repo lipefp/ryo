@@ -34,6 +34,7 @@ jobs:
           npm run app:preparar
           npx cap add android
           cp -r res/. android/app/src/main/res/
+          node scripts/nativo.mjs
           npx cap sync android
 
       - name: Chave de assinatura
