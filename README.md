@@ -43,7 +43,8 @@ Ryo (両) foi a moeda de ouro do Japão no período Edo. O ideograma também que
 **Organização**
 - Metas com valor, prazo e quanto guardar por mês
 - Extrato do mês separado por categoria
-- Importa extrato em PDF (testado com Santander), OFX e CSV, sem duplicar o que já foi lançado
+- Importa extrato da conta e fatura do cartão em PDF (testado com Santander), OFX e CSV, sem duplicar o que já foi lançado
+- Aprende suas categorias: corrigiu uma vez, ele acerta das próximas
 - Lançamento automático pelas notificações do banco no celular
 - Tema claro e escuro, backup em JSON
 
@@ -64,7 +65,7 @@ Pra uso pessoal, desative novos cadastros no Supabase em Authentication > Sign I
 
 ## Como rodar o seu
 
-1. Crie um projeto no [Supabase](https://supabase.com) e rode no SQL Editor os arquivos da pasta `supabase/`, nesta ordem: `schema.sql`, `002`, `003`, `004` e `005`.
+1. Crie um projeto no [Supabase](https://supabase.com) e rode no SQL Editor os arquivos da pasta `supabase/`, nesta ordem: `schema.sql` e depois `002` a `006`.
 2. Crie seu usuário em Authentication > Users > Add user.
 3. Coloque a Project URL e a chave publishable no `app/config.js`. No mesmo arquivo ficam os cartões, as categorias e os atalhos.
 4. Publique no GitHub Pages (Settings > Pages > Source: GitHub Actions; o workflow `pages.yml` publica a pasta `app/`) ou rode local:
@@ -92,7 +93,6 @@ docs/         imagens deste README
 
 ## Próximos passos
 
-- [ ] Importar a fatura do cartão em PDF
 - [ ] Gráfico da sobra mês a mês
 - [ ] Backend próprio em Django REST
 
