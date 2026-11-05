@@ -539,6 +539,10 @@ h1, h2, .titulo { font-weight: 800; letter-spacing: -0.03em; }
   Object.keys(CARDS).forEach((k) => {
     [$("forma"), $("cartaoFat")].forEach((sl) => { const o = document.createElement("option"); o.value = k; o.textContent = CARDS[k]; sl.appendChild(o); });
   });
+  // vale-refeição/alimentação: entra no gasto, não sai da conta e não tem fatura
+  { const o = document.createElement("option"); o.value = "beneficio"; o.textContent = "Benefício (VR/VA)"; $("forma").appendChild(o); }
+  function nomeForma(k, cap) { const n = CARDS[k] || (k === "beneficio" ? "benefício" : "cartão"); return cap ? n.charAt(0).toUpperCase() + n.slice(1) : n; }
+  function formaValida(k) { return k && (CARDS[k] || k === "beneficio") ? k : "conta"; }
 
   function setTipo(t) {
     tipo = t;
@@ -771,7 +775,7 @@ h1, h2, .titulo { font-weight: 800; letter-spacing: -0.03em; }
         const n = document.createElement("div"); n.textContent = first.base || first.descricao;
         const v = document.createElement("div"); v.className = "num"; v.textContent = fmt(first.valor) + "/mês";
         const ml = document.createElement("div"); ml.className = "meta-line";
-        const a = document.createElement("span"); a.textContent = items.length + (items.length === 1 ? " parcela restante" : " parcelas restantes") + " · " + (isConta(first) ? "conta" : (CARDS[first.forma] || "cartão")) + " · última em " + prazoLabel(last.data.slice(0, 7));
+        const a = document.createElement("span"); a.textContent = items.length + (items.length === 1 ? " parcela restante" : " parcelas restantes") + " · " + (isConta(first) ? "conta" : nomeForma(first.forma)) + " · última em " + prazoLabel(last.data.slice(0, 7));
         const del = document.createElement("button"); del.type = "button"; del.className = "linkbtn";
         const confirming = pendingDel === "g:" + first.grupo;
         del.textContent = confirming ? "Confirmar: apagar " + items.length + " parcelas futuras" : "Apagar parcelas futuras";
@@ -823,7 +827,7 @@ h1, h2, .titulo { font-weight: 800; letter-spacing: -0.03em; }
       const t1 = document.createElement("div"); t1.textContent = l.descricao || "—";
       const t2 = document.createElement("div");
       if (l.data > todayISO() && l.tipo === "gasto") t1.textContent += " · prevista";
-      if (l.tipo === "gasto") t2.textContent = (l.categoria || "Outros") + (isConta(l) ? "" : " · " + (CARDS[l.forma] || "Cartão"));
+      if (l.tipo === "gasto") t2.textContent = (l.categoria || "Outros") + (isConta(l) ? "" : " · " + nomeForma(l.forma, true));
       else if (l.tipo === "entrada") t2.textContent = "Entrada";
       else if (l.tipo === "fatura") t2.textContent = "Pagamento de fatura, sai da conta";
       else { const m = metas.find((x) => x.id === l.metaId); t2.textContent = "Guardado em " + (m ? m.nome : "meta removida"); }
@@ -1050,7 +1054,7 @@ h1, h2, .titulo { font-weight: 800; letter-spacing: -0.03em; }
   function contasDoMes(ym) {
     const itens = [];
     recs.filter((r) => r.ativo).forEach((r) => {
-      const det = r.externa ? "só lembrete · sai de outra conta" : r.tipo === "gasto" ? (r.categoria || "Outros") + (r.forma && r.forma !== "conta" ? " · " + (CARDS[r.forma] || "cartão") : "")
+      const det = r.externa ? "só lembrete · sai de outra conta" : r.tipo === "gasto" ? (r.categoria || "Outros") + (r.forma && r.forma !== "conta" ? " · " + nomeForma(r.forma) : "")
         : r.tipo === "entrada" ? "entrada" : "guardar em " + ((metas.find((m) => m.id === r.metaId) || {}).nome || "meta removida");
       itens.push({ kind: "rec", r, nome: r.nome, dia: diaDe(r, ym), util: r.diaUtil ? r.dia : null, valor: r.valor, sinal: { entrada: "+ ", gasto: "− ", guardado: "→ " }[r.tipo] || "", det, pago: fixaLancada(r, ym), entrada: r.tipo === "entrada", externa: r.externa });
     });
@@ -1081,7 +1085,7 @@ h1, h2, .titulo { font-weight: 800; letter-spacing: -0.03em; }
       setTipo(r.tipo);
       $("valor").value = r.valor.toFixed(2).replace(".", ",");
       $("descricao").value = r.nome;
-      if (r.tipo === "gasto") { sel.value = r.categoria || "Outros"; $("forma").value = r.forma && CARDS[r.forma] ? r.forma : "conta"; $("maisOpcoes").open = $("forma").value !== "conta"; }
+      if (r.tipo === "gasto") { sel.value = r.categoria || "Outros"; $("forma").value = formaValida(r.forma); $("maisOpcoes").open = $("forma").value !== "conta"; }
       if (r.tipo === "guardado" && r.metaId) $("metaSel").value = r.metaId;
       pagarRec = r.id;
     } else {
@@ -1246,7 +1250,7 @@ h1, h2, .titulo { font-weight: 800; letter-spacing: -0.03em; }
     if (l.tipo === "gasto") {
       if (l.categoria && ![...sel.options].some((o) => o.value === l.categoria)) { const o = document.createElement("option"); o.value = l.categoria; o.textContent = l.categoria; sel.appendChild(o); }
       sel.value = l.categoria || "Outros";
-      $("forma").value = l.forma && CARDS[l.forma] ? l.forma : "conta";
+      $("forma").value = formaValida(l.forma);
     }
     if (l.tipo === "fatura" && l.cartao) $("cartaoFat").value = l.cartao;
     if (l.tipo === "guardado" && l.metaId) $("metaSel").value = l.metaId;
@@ -1555,7 +1559,7 @@ h1, h2, .titulo { font-weight: 800; letter-spacing: -0.03em; }
       const t1 = document.createElement("div"); t1.textContent = r.desc;
       const t2 = document.createElement("div");
       const [, mm, dd] = r.data.split("-");
-      t2.textContent = dd + "/" + mm + (r.tipo === "fatura" ? " · pagamento de fatura" : r.tipo === "entrada" ? " · entrada" : r.forma && r.forma !== "conta" ? " · " + (CARDS[r.forma] || "cartão") : "") + (r.futura ? " · parcela futura" : "") + (r.dup ? " · parece já lançado" : "");
+      t2.textContent = dd + "/" + mm + (r.tipo === "fatura" ? " · pagamento de fatura" : r.tipo === "entrada" ? " · entrada" : r.forma && r.forma !== "conta" ? " · " + nomeForma(r.forma) : "") + (r.futura ? " · parcela futura" : "") + (r.dup ? " · parece já lançado" : "");
       if (r.dup) t2.style.color = "var(--warn)";
       info.append(t1, t2);
       const amt = document.createElement("span"); amt.className = "amt " + r.tipo;
