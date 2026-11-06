@@ -24,6 +24,10 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: actions/configure-pages@v5
+      # o app Android abre este site; o capacitor.js liga o site às funções do celular
+      - run: |
+          npm install --no-save --no-audit --no-fund --prefix "$RUNNER_TEMP/cap" @capacitor/core@8.5.3
+          cp "$RUNNER_TEMP/cap/node_modules/@capacitor/core/dist/capacitor.js" app/
       - uses: actions/upload-pages-artifact@v4
         with:
           path: app

@@ -2,5 +2,9 @@
   "appId": "app.caixa.livro",
   "appName": "Ryo",
   "webDir": "www",
-  "backgroundColor": "#F6F3EE"
+  "backgroundColor": "#F6F3EE",
+  "server": {
+    "url": "https://lipefp.github.io/ryo/",
+    "errorPath": "offline.html"
+  }
 }
