@@ -65,7 +65,7 @@ Pra uso pessoal, desative novos cadastros no Supabase em Authentication > Sign I
 
 ## Como rodar o seu
 
-1. Crie um projeto no [Supabase](https://supabase.com) e rode no SQL Editor os arquivos da pasta `supabase/`, nesta ordem: `schema.sql` e depois `002` a `010`.
+1. Crie um projeto no [Supabase](https://supabase.com) e rode no SQL Editor os arquivos da pasta `supabase/`, nesta ordem: `schema.sql` e depois `002` a `011`.
 2. Crie seu usuário em Authentication > Users > Add user.
 3. Coloque a Project URL e a chave publishable no `app/config.js`. No mesmo arquivo ficam os cartões, as categorias e os atalhos.
 4. Publique no GitHub Pages (Settings > Pages > Source: GitHub Actions; o workflow `pages.yml` publica a pasta `app/`) ou rode local:
