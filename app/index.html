@@ -1422,6 +1422,30 @@ h1, h2, .titulo { font-weight: 800; letter-spacing: -0.03em; }
     }
     return linhas.join("\n");
   }
+  // extrato da conta do Santander (app/site, layout "EXTRATO DE CONTA · DETALHE DOS MOVIMENTOS")
+  // cada movimento ocupa 3 linhas: tipo ("Pix enviado"), "DD/MM/AAAA [descrição] -R$ valor R$ saldo" e a outra parte
+  function ehExtratoSantander(texto) { return /EXTRATO DE CONTA/i.test(texto) && /DETALHE DOS MOVIMENTOS/i.test(texto); }
+  function parseExtratoSantander(texto) {
+    const L = texto.split(/\r?\n/).map((s) => s.replace(/\s+/g, " ").trim()).filter(Boolean);
+    const RX = /^(\d{2})\/(\d{2})\/(\d{4})\s*(.*?)\s*(-?)\s*R\$\s*([\d.]+,\d{2})\s+-?\s*R\$\s*[\d.]+,\d{2}$/;
+    const lixo = (l) => !l || RX.test(l) || /\d{1,2} de [a-zç]+ de \d{4}$/i.test(l) || /^Data Descri/i.test(l) || /^DETALHE DOS MOV/i.test(l) || /^\d+\/\d+$/.test(l);
+    const out = [];
+    L.forEach((l, i) => {
+      const m = l.match(RX);
+      if (!m) return;
+      const ant = L[i - 1], prox = L[i + 1];
+      const rotulo = m[4] || (!lixo(ant) ? ant : "");
+      // a linha seguinte é a outra parte, a não ser que já seja o rótulo do próximo movimento
+      const parte = !m[4] && !lixo(prox) && !RX.test(L[i + 2] || "") ? prox : "";
+      let desc;
+      if (/^pix enviado/i.test(rotulo) && parte) desc = "Pix para " + parte;
+      else if (/^pix recebido/i.test(rotulo) && parte) desc = "Pix de " + parte;
+      else if (/cr[ée]dito de sal[áa]rio/i.test(rotulo)) desc = "Salário" + (parte ? " " + parte : "");
+      else desc = (rotulo + (parte ? " " + parte : "")).trim() || "Movimentação";
+      out.push({ data: m[3] + "-" + m[2] + "-" + m[1], desc, valor: valorBR(m[6]).n, neg: m[5] === "-" });
+    });
+    return out;
+  }
   // fatura do cartão (testado com a do Santander)
   function ehFatura(texto) { return /Detalhamento da Fatura/i.test(texto) && /Total a Pagar/i.test(texto); }
   function addMesesISO(iso, n) {
@@ -1490,7 +1514,7 @@ h1, h2, .titulo { font-weight: 800; letter-spacing: -0.03em; }
         if (/\.pdf$/i.test(f.name) || f.type === "application/pdf") {
           const texto = await textoDoPdf(await f.arrayBuffer());
           if (ehFatura(texto)) return lerFatura(texto);
-          brutos = parseTexto(texto, ano);
+          brutos = ehExtratoSantander(texto) ? parseExtratoSantander(texto) : parseTexto(texto, ano);
         }
         else {
           const t = await f.text();
