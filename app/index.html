@@ -292,6 +292,7 @@ h1, h2, .titulo { font-weight: 800; letter-spacing: -0.03em; }
       <span class="muted">Sobrou este mês</span>
       <span class="v num" id="sSobra">R$ 0,00</span>
       <span class="muted">Entrou <b class="num" id="sEntrou">R$ 0,00</b> · Saiu <b class="num" id="sSaiu">R$ 0,00</b></span>
+      <span class="small muted" id="sDepois" hidden></span>
       <div hidden><span id="sGastou"></span><span id="sGuardou"></span><span id="sFatura"></span><span id="sFaturaSub"></span></div>
     </section>
 
@@ -697,9 +698,15 @@ h1, h2, .titulo { font-weight: 800; letter-spacing: -0.03em; }
     const [y, mo] = viewYM.split("-").map(Number);
     $("monthLabel").textContent = MONTHS.format(new Date(y, mo - 1, 1));
     const mes = lanc.filter((l) => (l.data || "").slice(0, 7) === viewYM);
-    const sum = (t) => mes.filter((l) => l.tipo === t).reduce((s, l) => s + l.valor, 0);
+    // no mês atual, o que tem data depois de hoje (parcela, conta agendada) ainda não saiu da conta
+    const hoje = todayISO(), atual = viewYM === hoje.slice(0, 7);
+    const feito = atual ? mes.filter((l) => l.data <= hoje) : mes;
+    const sum = (t) => feito.filter((l) => l.tipo === t).reduce((s, l) => s + l.valor, 0);
     const ent = sum("entrada"), gas = sum("gasto"), gua = sum("guardado"), fat = sum("fatura");
-    const gasConta = mes.filter((l) => l.tipo === "gasto" && isConta(l)).reduce((s, l) => s + l.valor, 0);
+    const gasConta = feito.filter((l) => l.tipo === "gasto" && isConta(l)).reduce((s, l) => s + l.valor, 0);
+    const depois = atual ? mes.filter((l) => l.data > hoje && (l.tipo === "guardado" || l.tipo === "fatura" || (l.tipo === "gasto" && isConta(l)))).reduce((s, l) => s + l.valor, 0) : 0;
+    $("sDepois").hidden = !depois;
+    $("sDepois").textContent = "Ainda sai " + fmt(depois) + " até o fim do mês (parcelas agendadas)";
     $("sEntrou").textContent = fmt(ent);
     $("sSaiu").textContent = fmt(gasConta + gua + fat);
     $("sGastou").textContent = fmt(gas);
