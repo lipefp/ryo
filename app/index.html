@@ -289,10 +289,15 @@ h1, h2, .titulo { font-weight: 800; letter-spacing: -0.03em; }
 
   <div class="view" id="view-main" hidden>
     <section class="hero" aria-label="Sobra do mês">
-      <span class="muted">Sobrou este mês</span>
+      <span class="muted" id="sRotulo">Sobrou este mês</span>
       <span class="v num" id="sSobra">R$ 0,00</span>
       <span class="muted">Entrou <b class="num" id="sEntrou">R$ 0,00</b> · Saiu <b class="num" id="sSaiu">R$ 0,00</b></span>
       <span class="small muted" id="sDepois" hidden></span>
+      <button type="button" class="linkbtn small" id="saldoBtn" style="align-self: flex-start">Usar o saldo do banco</button>
+      <form class="acoes" id="saldoForm" hidden novalidate>
+        <div class="field" style="flex: 1 1 160px"><label for="saldoValor">Saldo no banco agora (R$)</label><input id="saldoValor" inputmode="decimal" placeholder="2.065,45"></div>
+        <button class="primary small-btn" type="submit">Salvar</button><button type="button" class="linkbtn" id="saldoCancelar">Cancelar</button>
+      </form>
       <div hidden><span id="sGastou"></span><span id="sGuardou"></span><span id="sFatura"></span><span id="sFaturaSub"></span></div>
     </section>
 
@@ -504,7 +509,7 @@ h1, h2, .titulo { font-weight: 800; letter-spacing: -0.03em; }
   let editing = null;
   let pendingDel = null;
   let recs = [];
-  let ajustes = { teto: null };
+  let ajustes = { teto: null, saldo: null, saldoData: null, saldoEm: null };
   let migr002 = false;
   let migr006 = false, regras = [], faturas = [];
   let editId = null;
@@ -700,7 +705,9 @@ h1, h2, .titulo { font-weight: 800; letter-spacing: -0.03em; }
     const mes = lanc.filter((l) => (l.data || "").slice(0, 7) === viewYM);
     // no mês atual, o que tem data depois de hoje (parcela, conta agendada) ainda não saiu da conta
     const hoje = todayISO(), atual = viewYM === hoje.slice(0, 7);
-    const feito = atual ? mes.filter((l) => l.data <= hoje) : mes;
+    const corteSaldo = ajustes.saldoData || "9999";
+    // parcela da conta ainda não paga não conta como saída
+    const feito = atual ? mes.filter((l) => l.data <= hoje && !(ajustes.saldo != null && l.grupo && l.tipo === "gasto" && isConta(l) && !l.importRef && l.data >= corteSaldo)) : mes;
     const sum = (t) => feito.filter((l) => l.tipo === t).reduce((s, l) => s + l.valor, 0);
     const ent = sum("entrada"), gas = sum("gasto"), gua = sum("guardado"), fat = sum("fatura");
     const gasConta = feito.filter((l) => l.tipo === "gasto" && isConta(l)).reduce((s, l) => s + l.valor, 0);
@@ -714,7 +721,23 @@ h1, h2, .titulo { font-weight: 800; letter-spacing: -0.03em; }
     const abertos = Object.keys(CARDS).map((k) => [k, Math.max(abertoCartao(k), 0)]);
     $("sFatura").textContent = fmt(abertos.reduce((x, a) => x + a[1], 0));
     $("sFaturaSub").textContent = abertos.filter((a) => a[1] > 0).map((a) => CARDS[a[0]] + " " + fmt(a[1])).join(" · ");
-    const sobra = ent - gasConta - gua - fat;
+    let sobra = ent - gasConta - gua - fat;
+    // com o saldo do banco: mostra o que tem na conta e quanto sobra depois de pagar o que falta no mês
+    const comSaldo = atual && ajustes.saldo != null && ajustes.saldoEm;
+    $("saldoBtn").hidden = !atual || !migr002;
+    $("saldoBtn").textContent = comSaldo ? "Conferir com o banco" : "Usar o saldo do banco";
+    $("sRotulo").textContent = comSaldo ? "Na conta agora" : "Sobrou este mês";
+    if (comSaldo) {
+      const efeito = (l) => l.tipo === "entrada" ? l.valor : l.tipo === "guardado" || l.tipo === "fatura" || (l.tipo === "gasto" && isConta(l)) ? -l.valor : 0;
+      sobra = ajustes.saldo + lanc.filter((l) => (l.criadoEm || "") > ajustes.saldoEm && l.data >= ajustes.saldoData && l.data <= hoje).reduce((x, l) => x + efeito(l), 0);
+      const falta = contasDoMes(viewYM).filter((it) => !it.pago && !it.externa && it.valor);
+      const sai = falta.filter((it) => !it.entrada).reduce((x, it) => x + it.valor, 0);
+      const entra = falta.filter((it) => it.entrada).reduce((x, it) => x + it.valor, 0);
+      $("sDepois").hidden = false;
+      $("sDepois").textContent = sai || entra
+        ? "Depois das contas do mês: " + fmt(sobra - sai + entra) + " · falta pagar " + fmt(sai)
+        : "Contas do mês pagas";
+    }
     { const t = fmt(sobra), i = t.lastIndexOf(","), el = $("sSobra"), c = document.createElement("span");
       c.className = "cent"; c.textContent = t.slice(i); el.replaceChildren(t.slice(0, i), c); }
     $("sSobra").style.color = sobra < 0 ? "var(--warn)" : "var(--ink)";
@@ -999,6 +1022,19 @@ h1, h2, .titulo { font-weight: 800; letter-spacing: -0.03em; }
     $("tetoBtn").hidden = !migr002;
     $("tetoBtn").textContent = teto ? "Mudar teto" : "Definir teto";
   }
+  $("saldoBtn").addEventListener("click", () => {
+    $("saldoForm").hidden = false;
+    $("saldoValor").value = "";
+    $("saldoValor").focus();
+  });
+  $("saldoCancelar").addEventListener("click", () => { $("saldoForm").hidden = true; });
+  $("saldoForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const v = parseMoney($("saldoValor").value);
+    if (!(v >= 0) && !(v < 0)) { $("status").textContent = "Digite o saldo que aparece no app do banco, por exemplo 2.065,45."; return; }
+    try { await api.setSaldo(v); $("saldoForm").hidden = true; $("status").textContent = ""; }
+    catch (err) { $("status").textContent = "Não deu pra salvar. Rode o arquivo supabase/010-saldo-da-conta.sql no Supabase."; }
+  });
   $("tetoBtn").addEventListener("click", () => {
     $("tetoForm").hidden = false;
     $("tetoValor").value = ajustes.teto ? ajustes.teto.toFixed(2).replace(".", ",") : "";
@@ -1064,6 +1100,11 @@ h1, h2, .titulo { font-weight: 800; letter-spacing: -0.03em; }
       const det = r.externa ? "só lembrete · sai de outra conta" : r.tipo === "gasto" ? (r.categoria || "Outros") + (r.forma && r.forma !== "conta" ? " · " + nomeForma(r.forma) : "")
         : r.tipo === "entrada" ? "entrada" : "guardar em " + ((metas.find((m) => m.id === r.metaId) || {}).nome || "meta removida");
       itens.push({ kind: "rec", r, nome: r.nome, dia: diaDe(r, ym), util: r.diaUtil ? r.dia : null, valor: r.valor, sinal: { entrada: "+ ", gasto: "− ", guardado: "→ " }[r.tipo] || "", det, pago: fixaLancada(r, ym), entrada: r.tipo === "entrada", externa: r.externa });
+    });
+    // parcelas que saem da conta (notebook, etc.): viram conta a pagar no mês
+    const corte = ajustes.saldoData || todayISO();
+    lanc.filter((l) => l.grupo && l.tipo === "gasto" && isConta(l) && (l.data || "").slice(0, 7) === ym).forEach((l) => {
+      itens.push({ kind: "parc", l, nome: l.descricao, dia: +l.data.slice(8, 10), valor: l.valor, sinal: "− ", det: "parcela", pago: !!l.importRef || l.data < corte, entrada: false });
     });
     (CFG.cartoes || []).filter((c) => c.vencimento).forEach((c) => {
       const doBanco = faturas.find((f) => f.cartao === c.id && f.vencimento.slice(0, 7) === ym);
@@ -1158,6 +1199,11 @@ h1, h2, .titulo { font-weight: 800; letter-spacing: -0.03em; }
           try { await api.updateRec(it.r.id, { ultimo_pago: it.pago ? mesAnterior(viewYM) : viewYM }); }
           catch (e) { $("status").textContent = "Não deu pra marcar. Rode o arquivo supabase/005-lembretes.sql no Supabase."; }
         });
+        right.appendChild(pg);
+      } else if (!it.pago && it.kind === "parc") {
+        const pg = document.createElement("button"); pg.type = "button"; pg.className = /late/.test(st.cls) ? "pagar-btn" : "pagar-btn ghost";
+        pg.textContent = "Paguei";
+        pg.addEventListener("click", async () => { try { await api.pagarParcela(it.l.id); } catch (e) { $("status").textContent = "Não deu pra marcar a parcela."; } });
         right.appendChild(pg);
       } else if (!it.pago) {
         const pg = document.createElement("button"); pg.type = "button"; pg.className = /late/.test(st.cls) ? "pagar-btn" : "pagar-btn ghost";
@@ -1877,7 +1923,9 @@ h1, h2, .titulo { font-weight: 800; letter-spacing: -0.03em; }
       metas = check(m).map(fromMeta);
       migr002 = !r.error;
       recs = r.error ? [] : (r.data || []).map(fromRec);
-      ajustes = { teto: !a.error && a.data ? num(a.data.teto_semanal) : null };
+      ajustes = { teto: !a.error && a.data ? num(a.data.teto_semanal) : null,
+        saldo: !a.error && a.data && a.data.saldo != null ? num(a.data.saldo) : null,
+        saldoData: !a.error && a.data ? a.data.saldo_data || null : null, saldoEm: !a.error && a.data ? a.data.saldo_em || null : null };
       renderMetaSelect(); renderChips(); render();
     },
     async addLanc(list) { check(await sb.from("lancamentos").insert(list.map(toLanc))); await api.loadAll(); },
@@ -1895,6 +1943,8 @@ h1, h2, .titulo { font-weight: 800; letter-spacing: -0.03em; }
       if (i >= 0) regras[i].categoria = categoria; else regras.push({ chave, categoria });
     },
     async setFatura(f) { check(await sb.from("faturas").upsert({ cartao: f.cartao, vencimento: f.vencimento, fechamento: f.fechamento, total: f.total }, { onConflict: "user_id,cartao,vencimento" })); },
+    async setSaldo(v) { check(await sb.from("ajustes").upsert({ saldo: v, saldo_data: todayISO(), saldo_em: new Date().toISOString(), atualizado_em: new Date().toISOString() })); await api.loadAll(); },
+    async pagarParcela(id) { check(await sb.from("lancamentos").update({ import_ref: "pago:" + todayISO(), criado_em: new Date().toISOString(), data: todayISO() }).eq("id", id)); await api.loadAll(); },
     async setTeto(v) { check(await sb.from("ajustes").upsert({ teto_semanal: v, atualizado_em: new Date().toISOString() })); await api.loadAll(); }
   };
 
@@ -1923,7 +1973,7 @@ h1, h2, .titulo { font-weight: 800; letter-spacing: -0.03em; }
   }
 
   function sairDoApp() {
-    db = null; lanc = []; metas = []; recs = []; ajustes = { teto: null };
+    db = null; lanc = []; metas = []; recs = []; ajustes = { teto: null, saldo: null, saldoData: null, saldoEm: null };
     if (canal) { sb.removeChannel(canal); canal = null; }
     renderMetaSelect(); render();
     $("status").textContent = "";
